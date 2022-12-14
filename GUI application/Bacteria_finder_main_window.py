@@ -9,7 +9,7 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QImage
 
 import sys
 sys.path.append('../Bacteria_finder')
@@ -134,6 +134,7 @@ class Ui_MainWindow(object):
 
         # All the connections are below
         self.LoadImageButton.clicked.connect(self.LoadImageButtonPushed)
+        self.ChannelsComboBox.activated.connect(self.ChannelsComboBoxChanged)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -157,11 +158,30 @@ class Ui_MainWindow(object):
         self.DrawBoundingBoxesCheckBox.setText(_translate("MainWindow", "Draw bounding boxes"))
         self.ReverseToOriginalButton.setText(_translate("MainWindow", "Reverse to original"))
 
+    def ChannelsComboBoxChanged(self, index):
+        '''
+        Function, that triggeres every time user changes the channel in Group Box
+        '''
+        # Dictionary for itemText
+        itemText_to_key = {"Gray-scale image" : 'gray', "Red channel" : 'red', "Green channel" : 'green', "Blue channel" : 'blue',
+                            "Hue channel" : 'hue', "Sat channel" : 'sat', "Val channel" : 'val'}
+        
+        # Changing stored images to chosen channel
+        if self.ChannelsComboBox.itemText(index) == "Original image":
+            # Updating the shown image
+            self.UpdateImage(True)
+        else:
+            self.changed_bacteria_image = select_colorsp(self.original_bacteria_image, itemText_to_key[self.ChannelsComboBox.itemText(index)])
+            self.changed_bounded_bacteria_image = select_colorsp(self.original_bacteria_image, itemText_to_key[self.ChannelsComboBox.itemText(index)])
+            # Updating the shown image
+            self.UpdateImage()
+        
     def LoadImageButtonPushed(self):
         '''
         Function, that: 
         1) loads the image
         2) saves the image in cv2
+        3) enables and disables Group Boxes and buttons
         3) displays it in application
         '''
         # Loading the image
@@ -177,9 +197,33 @@ class Ui_MainWindow(object):
         self.changed_bacteria_image = select_colorsp(self.original_bacteria_image, 'gray')
         self.changed_bounded_bacteria_image = select_colorsp(self.original_bacteria_image, 'gray')
 
+        # Enabling and disabling widgets
+        self.ColorSpaceGroupBox.setEnabled(True)
+        self.ThresholdingGroupBox.setEnabled(False)
+        self.BoundingBoxesGroupBox.setEnabled(False)
+        self.ReverseToOriginalButton.setEnabled(True)
+        self.SaveImageButton.setEnabled(True)
+
         # Displaying the image
         pixmap = QPixmap(self.File_path)
         self.ImageLabel.setPixmap(QPixmap(pixmap))
+
+    def UpdateImage(self, return_to_orig = False):
+        '''
+        Function, that updates image in the ImageLabel
+        '''
+        if return_to_orig:
+            pixmap = QPixmap(self.File_path)
+            self.ImageLabel.setPixmap(QPixmap(pixmap))
+        else:
+            if self.DrawBoundingBoxesCheckBox.checkState() == True:
+                displayed_image = self.changed_bounded_bacteria_image.copy()
+            else:
+                displayed_image = self.changed_bacteria_image.copy()
+            height, width = displayed_image.shape[0], displayed_image.shape[1]
+            Q_displayed_image = QImage(displayed_image.data, width, height, QImage.Format_Grayscale8)
+            Q_displayed_image_pixmap = QPixmap.fromImage(Q_displayed_image)
+            self.ImageLabel.setPixmap(Q_displayed_image_pixmap)
 
 
 if __name__ == "__main__":

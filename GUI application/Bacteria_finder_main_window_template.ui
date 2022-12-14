@@ -95,6 +95,11 @@
      </property>
      <item>
       <property name="text">
+       <string>Original image</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
        <string>Gray-scale image</string>
       </property>
      </item>
