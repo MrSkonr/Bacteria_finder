@@ -22,7 +22,7 @@
    <double>3.000000000000000</double>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QPushButton" name="pushButton">
+   <widget class="QPushButton" name="LoadImageButton">
     <property name="geometry">
      <rect>
       <x>850</x>
@@ -41,7 +41,7 @@
      <string>Load image</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_2">
+   <widget class="QPushButton" name="SaveImageButton">
     <property name="enabled">
      <bool>false</bool>
     </property>
@@ -63,7 +63,7 @@
      <string>Save image</string>
     </property>
    </widget>
-   <widget class="QGroupBox" name="groupBox">
+   <widget class="QGroupBox" name="ColorSpaceGroupBox">
     <property name="enabled">
      <bool>false</bool>
     </property>
@@ -84,7 +84,7 @@
     <property name="title">
      <string>Color space</string>
     </property>
-    <widget class="QComboBox" name="comboBox">
+    <widget class="QComboBox" name="ChannelsComboBox">
      <property name="geometry">
       <rect>
        <x>30</x>
@@ -129,7 +129,7 @@
       </property>
      </item>
     </widget>
-    <widget class="QPushButton" name="pushButton_3">
+    <widget class="QPushButton" name="SetColorSpaceButton">
      <property name="geometry">
       <rect>
        <x>260</x>
@@ -143,7 +143,7 @@
      </property>
     </widget>
    </widget>
-   <widget class="QGroupBox" name="groupBox_2">
+   <widget class="QGroupBox" name="ImageGroupBox">
     <property name="geometry">
      <rect>
       <x>9</x>
@@ -161,7 +161,7 @@
     <property name="title">
      <string>Image</string>
     </property>
-    <widget class="QLabel" name="label">
+    <widget class="QLabel" name="ImageLabel">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -181,7 +181,7 @@
      </property>
     </widget>
    </widget>
-   <widget class="QGroupBox" name="groupBox_3">
+   <widget class="QGroupBox" name="ThresholdingGroupBox">
     <property name="enabled">
      <bool>false</bool>
     </property>
@@ -202,7 +202,7 @@
     <property name="title">
      <string>Thresholding</string>
     </property>
-    <widget class="QPushButton" name="pushButton_4">
+    <widget class="QPushButton" name="SetThresholdButton">
      <property name="geometry">
       <rect>
        <x>310</x>
@@ -215,7 +215,7 @@
       <string>Set threshold</string>
      </property>
     </widget>
-    <widget class="QSlider" name="horizontalSlider">
+    <widget class="QSlider" name="ThresholdSlider">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -240,7 +240,7 @@
       <number>5</number>
      </property>
     </widget>
-    <widget class="QSpinBox" name="spinBox">
+    <widget class="QSpinBox" name="ThresholdSpinBox">
      <property name="geometry">
       <rect>
        <x>230</x>
@@ -257,7 +257,7 @@
      </property>
     </widget>
    </widget>
-   <widget class="QGroupBox" name="groupBox_4">
+   <widget class="QGroupBox" name="BoundingBoxesGroupBox">
     <property name="enabled">
      <bool>false</bool>
     </property>
@@ -278,7 +278,7 @@
     <property name="title">
      <string>Bounding boxes</string>
     </property>
-    <widget class="QCheckBox" name="checkBox">
+    <widget class="QCheckBox" name="DrawBoundingBoxesCheckBox">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -292,7 +292,7 @@
      </property>
     </widget>
    </widget>
-   <widget class="QPushButton" name="pushButton_5">
+   <widget class="QPushButton" name="ReverseToOriginalButton">
     <property name="enabled">
      <bool>false</bool>
     </property>
