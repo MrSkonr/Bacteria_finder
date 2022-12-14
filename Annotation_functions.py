@@ -6,12 +6,14 @@ def select_colorsp(img, colorsp='gray'):
     '''
     Function, that transforms the original image into one of color spaces (gray)
     
-    input:
-    img --- image in np.array HxWx3 format
-    colorsp --- the desired color space
+    input
 
-    output:
-    channels[colorsp] --- np.array HxWx3 in specified color space
+    img:                    image in np.array HxWx3 format
+    colorsp:                the desired color space
+
+    output
+
+    channels[colorsp]:      np.array HxWx3 in specified color space
     '''
 
     # Convert to grayscale
@@ -32,14 +34,17 @@ def display(im_left, im_right, name_l='Left', name_r='Right', figsize=(12,10)):
     '''
     Function, that displays two specified images
 
-    input: 
-    im_left: np.array HxWxn image
-    im_right: np.array HxWxn image
-    name_l: string, wil be displayed as title of the left image
-    name_r: string, wil be displayed as title of the right image
-    figsize: tuple with size of 2. Size of the figure
+    input 
 
-    output: matplotlib instance with two images shown
+    im_left:             np.array HxWxn image
+    im_right:            np.array HxWxn image
+    name_l:              string, wil be displayed as title of the left image
+    name_r:              string, wil be displayed as title of the right image
+    figsize:             tuple with size of 2. Size of the figure
+
+    output
+
+    matplotlib instance with two images shown
     '''
 
     # Flip channels for display if RGB as matplotlib requires RGB
@@ -64,13 +69,15 @@ def threshold(img, thresh=127, mode='inverse'):
     '''
     Perform the basic binarization by stating the threshold value
 
-    input:
-    img: np.array HxW gray image
-    thresh: int, desired threshold
-    mode: the desired binary state of final image. 'direct' or 'inverse'
+    input
 
-    output:
-    thresh: np.array HxW binarized image
+    img:          np.array HxW gray image
+    thresh:       int, desired threshold
+    mode:         the desired binary state of final image. 'direct' or 'inverse'
+
+    output
+
+    thresh:       np.array HxW binarized image
     '''
 
     im = img.copy()
@@ -88,11 +95,13 @@ def get_boxes(img):
     '''
     Basic boxes finder of binarized image
 
-    input:
-    img: np.array HxW binarized image
+    input
 
-    output:
-    bboxes: np.array Nx4 with boxes coordinates
+    img:           np.array HxW binarized image
+
+    output
+
+    bboxes:        np.array Nx4 with boxes coordinates
     '''
 
     contours, hierarchy = cv2.findContours(img, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
@@ -111,14 +120,16 @@ def draw_annotations(img, bboxes, thickness = 2, color = (0, 255, 0)):
     '''
     Function to draw boxes in specified coordinates
 
-    input:
-    img: np.array HxWxn image
-    bboxes: np.array Nx4 with boxes coordinates
-    thickness: int, the thickness of the drawn line
-    color: int tuple with the size of 3. color in BGR format
+    input
 
-    output:
-    annotations: np.array HxWxn image with drawn boxes
+    img:             np.array HxWxn image
+    bboxes:          np.array Nx4 with boxes coordinates
+    thickness:       int, the thickness of the drawn line
+    color:           int tuple with the size of 3. color in BGR format
+
+    output
+
+    annotations:     np.array HxWxn image with drawn boxes
     '''
     annotations = img.copy()
     for box in bboxes:
@@ -132,14 +143,16 @@ def morph_op(img, mode = 'open', ksize = 5, iterations = 1):
     '''
     Function to perform basic morphological operations
 
-    input:
-    img: np.array HxWxn image
-    mode: string, desired operation. Possible variants are 'dilate', 'erode', 'close', 'open'
-    ksize: int, size of the square kernel
-    iterations: number of times the operation will take place
+    input
 
-    output:
-    morphed: changed np.array HxWxn image
+    img:              np.array HxWxn image
+    mode:             string, desired operation. Possible variants are 'dilate', 'erode', 'close', 'open'
+    ksize:            int, size of the square kernel
+    iterations:       number of times the operation will take place
+
+    output
+
+    morphed:          changed np.array HxWxn image
     '''
     im = img.copy()
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (ksize, ksize))
@@ -170,13 +183,15 @@ def get_filtered_bboxes(img, min_area_ratio = 0.001):
     '''
     Basic boxes finder of binarized image with simple size filter
 
-    input:
-    img: np.array HxW binarized image
-    min_area_ratio: int, ratio, that determines the sizes of removed boxes 
-    in the comparison to original image
+    input
 
-    output:
-    bboxes: np.array Nx4 with boxes coordinates
+    img:                  np.array HxW binarized image
+    min_area_ratio:       int, ratio, that determines the sizes of removed boxes 
+                         in the comparison to original image
+
+    output
+
+    bboxes:               np.array Nx4 with boxes coordinates
     '''
     contours, hierarchy = cv2.findContours(img, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
     # Sort according to the area of contours in descending order
@@ -198,13 +213,15 @@ def get_color_mask(img, lower = [0,0,0], upper = [0,255,255]):
     '''
     Function to mask-out the image in specified HSV boundaries
 
-    input:
-    img: np.array HxWxn image
-    lower: np.array with the size of 3. Lower HSV boundaries
-    upper: np.array with the size of 3. Lower HSV boundaries
+    input
 
-    output:
-    inv_mask: np.array HxWxn masked-out image
+    img:            np.array HxWxn image
+    lower:          np.array with the size of 3. Lower HSV boundaries
+    upper:          np.array with the size of 3. Lower HSV boundaries
+
+    output
+
+    inv_mask:       np.array HxWxn masked-out image
     '''
     img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     low = np.array(lower)
@@ -218,11 +235,13 @@ def save_annotations(img, bboxes):
     '''
     Function to save boxes locations in txt file in YOLO format
 
-    input:
-    img: np.array HxWxn image
-    bboxes: np.array Nx4 with boxes coordinates
+    input
 
-    output:
+    img:          np.array HxWxn image
+    bboxes:       np.array Nx4 with boxes coordinates
+
+    output
+    
     Txt file 'bounding_boxes_yolo.txt' will be generated in the origin folder
     '''
     img_height = img.shape[0]
