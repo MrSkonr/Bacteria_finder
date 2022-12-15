@@ -101,6 +101,9 @@ class Ui_MainWindow(object):
         self.ThresholdSpinBox.setMaximum(255)
         self.ThresholdSpinBox.setProperty("value", 127)
         self.ThresholdSpinBox.setObjectName("ThresholdSpinBox")
+        self.InverseBinaryCheckBox = QtWidgets.QCheckBox(self.ThresholdingGroupBox)
+        self.InverseBinaryCheckBox.setGeometry(QtCore.QRect(10, 80, 151, 21))
+        self.InverseBinaryCheckBox.setObjectName("InverseBinaryCheckBox")
         self.BoundingBoxesGroupBox = QtWidgets.QGroupBox(self.centralwidget)
         self.BoundingBoxesGroupBox.setEnabled(False)
         self.BoundingBoxesGroupBox.setGeometry(QtCore.QRect(1040, 570, 231, 61))
@@ -111,15 +114,26 @@ class Ui_MainWindow(object):
         self.BoundingBoxesGroupBox.setObjectName("BoundingBoxesGroupBox")
         self.DrawBoundingBoxesCheckBox = QtWidgets.QCheckBox(self.BoundingBoxesGroupBox)
         self.DrawBoundingBoxesCheckBox.setGeometry(QtCore.QRect(10, 30, 211, 21))
+        self.DrawBoundingBoxesCheckBox.setTristate(False)
         self.DrawBoundingBoxesCheckBox.setObjectName("DrawBoundingBoxesCheckBox")
-        self.ReverseToOriginalButton = QtWidgets.QPushButton(self.centralwidget)
-        self.ReverseToOriginalButton.setEnabled(False)
-        self.ReverseToOriginalButton.setGeometry(QtCore.QRect(1090, 230, 171, 41))
+        self.UtilitiesGroupBox = QtWidgets.QGroupBox(self.centralwidget)
+        self.UtilitiesGroupBox.setEnabled(False)
+        self.UtilitiesGroupBox.setGeometry(QtCore.QRect(1020, 230, 251, 121))
+        font = QtGui.QFont()
+        font.setFamily("MS Sans Serif")
+        font.setPointSize(14)
+        self.UtilitiesGroupBox.setFont(font)
+        self.UtilitiesGroupBox.setObjectName("UtilitiesGroupBox")
+        self.ReverseToOriginalButton = QtWidgets.QPushButton(self.UtilitiesGroupBox)
+        self.ReverseToOriginalButton.setGeometry(QtCore.QRect(70, 70, 171, 41))
         font = QtGui.QFont()
         font.setFamily("MS Sans Serif")
         font.setPointSize(14)
         self.ReverseToOriginalButton.setFont(font)
         self.ReverseToOriginalButton.setObjectName("ReverseToOriginalButton")
+        self.ShowOriginalImageCheckBox = QtWidgets.QCheckBox(self.UtilitiesGroupBox)
+        self.ShowOriginalImageCheckBox.setGeometry(QtCore.QRect(40, 30, 201, 31))
+        self.ShowOriginalImageCheckBox.setObjectName("ShowOriginalImageCheckBox")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1280, 22))
@@ -141,6 +155,8 @@ class Ui_MainWindow(object):
         self.DrawBoundingBoxesCheckBox.stateChanged.connect(self.DrawBoundingBoxesCheckBoxChanged)
         self.SaveImageButton.clicked.connect(self.SaveImageButtonPushed)
         self.ReverseToOriginalButton.clicked.connect(self.ReverseToOriginalImage)
+        self.InverseBinaryCheckBox.stateChanged.connect(self.InverseBinaryCheckBoxChanged)
+        self.ShowOriginalImageCheckBox.stateChanged.connect(self.ShowOriginalImageCheckBoxChanged)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -160,11 +176,26 @@ class Ui_MainWindow(object):
         self.ImageGroupBox.setTitle(_translate("MainWindow", "Image"))
         self.ThresholdingGroupBox.setTitle(_translate("MainWindow", "Thresholding"))
         self.SetThresholdButton.setText(_translate("MainWindow", "Set threshold"))
+        self.InverseBinaryCheckBox.setText(_translate("MainWindow", "Inverse binary"))
         self.BoundingBoxesGroupBox.setTitle(_translate("MainWindow", "Bounding boxes"))
         self.DrawBoundingBoxesCheckBox.setText(_translate("MainWindow", "Draw bounding boxes"))
+        self.UtilitiesGroupBox.setTitle(_translate("MainWindow", "Utilities"))
         self.ReverseToOriginalButton.setText(_translate("MainWindow", "Reverse to original"))
+        self.ShowOriginalImageCheckBox.setText(_translate("MainWindow", "Show original image"))
 
-
+    
+    def ShowOriginalImageCheckBoxChanged(self):
+        '''
+        Calls UpdateImage
+        '''
+        self.UpdateImage()
+    
+    def InverseBinaryCheckBoxChanged(self):
+        '''
+        Calls ThresholdSliderChanged
+        '''
+        self.ThresholdSliderChanged(self.ThresholdSpinBox.value())
+    
     def SaveImageButtonPushed(self):
         '''
         Function, opens save dialog window and saves the shown image
@@ -187,10 +218,7 @@ class Ui_MainWindow(object):
             return
 
         # Saving in choisen path
-        if self.DrawBoundingBoxesCheckBox.isChecked() == True:
-            cv2.imwrite(self.File_save_path, self.changed_bounded_bacteria_image.copy())
-        else:
-            cv2.imwrite(self.File_save_path, self.changed_bacteria_image.copy())
+        cv2.imwrite(self.File_save_path, self.displayed_image.copy())
     
     def DrawBoundingBoxesCheckBoxChanged(self, value):
         '''
@@ -209,17 +237,20 @@ class Ui_MainWindow(object):
         '''
         Function, that performes threshold upon changed value
         '''
+        # Dictionary for InverseBinary
+        inverse_binary_dict = {True : 'inverse', False:  'direct'}
+
         # Synchronizing with spin box
         self.ThresholdSpinBox.setValue(value)
 
         # Thresholding
         if self.DrawBoundingBoxesCheckBox.isChecked():
             self.changed_bacteria_image = threshold(self.channeled_bacteria_image, 
-                                                    thresh=value, mode='direct')
+                                                    thresh=value, mode=inverse_binary_dict[self.InverseBinaryCheckBox.isChecked()])
             self.changed_bounded_bacteria_image = draw_annotations(self.changed_bacteria_image.copy(), get_boxes(self.changed_bacteria_image), thickness= 1)
         else:
             self.changed_bacteria_image = threshold(self.channeled_bacteria_image, 
-                                                    thresh=value, mode='direct')
+                                                    thresh=value, mode=inverse_binary_dict[self.InverseBinaryCheckBox.isChecked()])
         
         # Updating the shown image
         self.UpdateImage()
@@ -263,6 +294,7 @@ class Ui_MainWindow(object):
         self.ThresholdingGroupBox.setEnabled(True)
         self.BoundingBoxesGroupBox.setEnabled(True)
         self.ColorSpaceGroupBox.setEnabled(False)
+        self.UtilitiesGroupBox.setEnabled(True)
 
         # Initial Thresholding
         self.channeled_bacteria_image = self.changed_bacteria_image.copy()
@@ -322,7 +354,7 @@ class Ui_MainWindow(object):
         self.ColorSpaceGroupBox.setEnabled(True)
         self.ThresholdingGroupBox.setEnabled(False)
         self.BoundingBoxesGroupBox.setEnabled(False)
-        self.ReverseToOriginalButton.setEnabled(True)
+        self.UtilitiesGroupBox.setEnabled(False)
         self.SaveImageButton.setEnabled(True)
 
         # Returning to default settings
@@ -330,6 +362,8 @@ class Ui_MainWindow(object):
         self.ThresholdSlider.setValue(127)
         self.ThresholdSpinBox.setValue(127)
         self.DrawBoundingBoxesCheckBox.setCheckState(False)
+        self.InverseBinaryCheckBox.setCheckState(False)
+        self.ShowOriginalImageCheckBox.setCheckState(False)
 
         # Displaying the image
         pixmap = QPixmap(self.File_load_path)
@@ -340,15 +374,25 @@ class Ui_MainWindow(object):
         Function, that updates image in the ImageLabel
         '''
         if return_to_orig:
-            pixmap = QPixmap(self.File_path)
+            pixmap = QPixmap(self.File_load_path)
             self.ImageLabel.setPixmap(QPixmap(pixmap))
         else:
-            if self.DrawBoundingBoxesCheckBox.isChecked() == True:
-                displayed_image = self.changed_bounded_bacteria_image.copy()
+            if self.DrawBoundingBoxesCheckBox.isChecked():
+                if self.ShowOriginalImageCheckBox.isChecked():
+                    self.displayed_image = draw_annotations(self.original_bacteria_image.copy(), get_boxes(self.changed_bacteria_image.copy()),
+                                                            thickness= 1, color= (255, 0, 0))
+                else:
+                    self.displayed_image = self.changed_bounded_bacteria_image.copy()
             else:
-                displayed_image = self.changed_bacteria_image.copy()
-            height, width = displayed_image.shape[0], displayed_image.shape[1]
-            Q_displayed_image = QImage(displayed_image.data, width, height, QImage.Format_Grayscale8)
+                if self.ShowOriginalImageCheckBox.isChecked():
+                    self.displayed_image = self.original_bacteria_image.copy()
+                else:
+                    self.displayed_image = self.changed_bacteria_image.copy()
+            height, width = self.displayed_image.shape[0], self.displayed_image.shape[1]
+            if self.ShowOriginalImageCheckBox.isChecked():
+                Q_displayed_image = QImage(self.displayed_image.data, width, height, QImage.Format_RGB888).rgbSwapped()
+            else:
+                Q_displayed_image = QImage(self.displayed_image.data, width, height, QImage.Format_Grayscale8)
             Q_displayed_image_pixmap = QPixmap.fromImage(Q_displayed_image)
             self.ImageLabel.setPixmap(Q_displayed_image_pixmap)
 

@@ -261,6 +261,19 @@
       <number>127</number>
      </property>
     </widget>
+    <widget class="QCheckBox" name="InverseBinaryCheckBox">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>80</y>
+       <width>151</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Inverse binary</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QGroupBox" name="BoundingBoxesGroupBox">
     <property name="enabled">
@@ -295,18 +308,21 @@
      <property name="text">
       <string>Draw bounding boxes</string>
      </property>
+     <property name="tristate">
+      <bool>false</bool>
+     </property>
     </widget>
    </widget>
-   <widget class="QPushButton" name="ReverseToOriginalButton">
+   <widget class="QGroupBox" name="UtilitiesGroupBox">
     <property name="enabled">
      <bool>false</bool>
     </property>
     <property name="geometry">
      <rect>
-      <x>1090</x>
+      <x>1020</x>
       <y>230</y>
-      <width>171</width>
-      <height>41</height>
+      <width>251</width>
+      <height>121</height>
      </rect>
     </property>
     <property name="font">
@@ -315,9 +331,41 @@
       <pointsize>14</pointsize>
      </font>
     </property>
-    <property name="text">
-     <string>Reverse to original</string>
+    <property name="title">
+     <string>Utilities</string>
     </property>
+    <widget class="QPushButton" name="ReverseToOriginalButton">
+     <property name="geometry">
+      <rect>
+       <x>70</x>
+       <y>70</y>
+       <width>171</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>MS Sans Serif</family>
+       <pointsize>14</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Reverse to original</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="ShowOriginalImageCheckBox">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>30</y>
+       <width>201</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Show original image</string>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
