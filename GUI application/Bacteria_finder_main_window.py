@@ -135,6 +135,10 @@ class Ui_MainWindow(object):
         # All the connections are below
         self.LoadImageButton.clicked.connect(self.LoadImageButtonPushed)
         self.ChannelsComboBox.activated.connect(self.ChannelsComboBoxChanged)
+        self.SetColorSpaceButton.clicked.connect(self.SetColorSpaceButtonPushed)
+        self.ThresholdSlider.valueChanged.connect(self.ThresholdSliderChanged)
+        self.ThresholdSpinBox.valueChanged.connect(self.ThresholdSpinBoxChanged)
+        self.DrawBoundingBoxesCheckBox.stateChanged.connect(self.DrawBoundingBoxesCheckBoxChanged)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -158,6 +162,89 @@ class Ui_MainWindow(object):
         self.DrawBoundingBoxesCheckBox.setText(_translate("MainWindow", "Draw bounding boxes"))
         self.ReverseToOriginalButton.setText(_translate("MainWindow", "Reverse to original"))
 
+    def DrawBoundingBoxesCheckBoxChanged(self, value):
+        '''
+        Function, that switches between drawing bounding boxes or not
+        '''
+        # Check the value of CheckBox
+        if value:
+            self.changed_bounded_bacteria_image = draw_annotations(self.changed_bacteria_image.copy(), get_boxes(self.changed_bacteria_image.copy()), thickness= 1)
+        else:
+            self.changed_bounded_bacteria_image = self.changed_bacteria_image.copy()
+
+        # Updating the shown image
+        self.UpdateImage()
+    
+    def ThresholdSliderChanged(self, value):
+        '''
+        Function, that performes threshold upon changed value
+        '''
+        # Synchronizing with spin box
+        self.ThresholdSpinBox.setValue(value)
+
+        # Thresholding
+        if self.DrawBoundingBoxesCheckBox.isChecked():
+            self.changed_bacteria_image = threshold(self.channeled_bacteria_image, 
+                                                    thresh=value, mode='direct')
+            self.changed_bounded_bacteria_image = draw_annotations(self.changed_bacteria_image.copy(), get_boxes(self.changed_bacteria_image), thickness= 1)
+        else:
+            self.changed_bacteria_image = threshold(self.channeled_bacteria_image, 
+                                                    thresh=value, mode='direct')
+        
+        # Updating the shown image
+        self.UpdateImage()
+
+    def ThresholdSpinBoxChanged(self, value):
+        '''
+        Function, that performes threshold upon changed value
+        '''
+        # Synchronizing with slider
+        self.ThresholdSlider.setValue(value)
+
+        # Thresholding
+        if self.DrawBoundingBoxesCheckBox.isChecked():
+            self.changed_bacteria_image = threshold(self.channeled_bacteria_image, 
+                                                    thresh=value, mode='direct')
+            self.changed_bounded_bacteria_image = draw_annotations(self.changed_bacteria_image.copy(), get_boxes(self.changed_bacteria_image), thickness= 1)
+        else:
+            self.changed_bacteria_image = threshold(self.channeled_bacteria_image, 
+                                                    thresh=value, mode='direct')
+        
+        # Updating the shown image
+        self.UpdateImage()
+
+    
+    def SetColorSpaceButtonPushed(self):
+        '''
+        Function, that fixates the chosen color channel and activates thresholding and bounding boxing
+        Also, the initial thresholding is performed
+        '''
+        # Checking if "Original image" is still chosen
+        if self.ChannelsComboBox.currentText() == "Original image":
+            warn_msg = QtWidgets.QMessageBox()
+            warn_msg.setWindowTitle("Bacteria finder")
+            warn_msg.setText("Please choose one of the color channels")
+            warn_msg.setIcon(QtWidgets.QMessageBox.Warning)
+            warn_msg.exec_()
+            return
+
+        
+        # Activating and deactivating
+        self.ThresholdingGroupBox.setEnabled(True)
+        self.BoundingBoxesGroupBox.setEnabled(True)
+        self.ColorSpaceGroupBox.setEnabled(False)
+
+        # Initial Thresholding
+        self.channeled_bacteria_image = self.changed_bacteria_image.copy()
+        self.changed_bacteria_image = threshold(self.channeled_bacteria_image, 
+                                                thresh=self.ThresholdSpinBox.value(), mode='direct')
+        self.changed_bounded_bacteria_image = threshold(self.channeled_bacteria_image, 
+                                                        thresh=self.ThresholdSpinBox.value(), mode='direct')
+        
+        # Updating the shown image
+        self.UpdateImage()
+
+    
     def ChannelsComboBoxChanged(self, index):
         '''
         Function, that triggeres every time user changes the channel in Group Box
@@ -175,13 +262,14 @@ class Ui_MainWindow(object):
             self.changed_bounded_bacteria_image = select_colorsp(self.original_bacteria_image, itemText_to_key[self.ChannelsComboBox.itemText(index)])
             # Updating the shown image
             self.UpdateImage()
-        
+    
     def LoadImageButtonPushed(self):
         '''
         Function, that: 
         1) loads the image
         2) saves the image in cv2
         3) enables and disables Group Boxes and buttons
+        4) returns all settings to default
         3) displays it in application
         '''
         # Loading the image
@@ -204,6 +292,12 @@ class Ui_MainWindow(object):
         self.ReverseToOriginalButton.setEnabled(True)
         self.SaveImageButton.setEnabled(True)
 
+        # Returning to default settings
+        self.ChannelsComboBox.setCurrentIndex(0)
+        self.ThresholdSlider.setValue(127)
+        self.ThresholdSpinBox.setValue(127)
+        self.DrawBoundingBoxesCheckBox.setCheckState(False)
+
         # Displaying the image
         pixmap = QPixmap(self.File_path)
         self.ImageLabel.setPixmap(QPixmap(pixmap))
@@ -216,7 +310,7 @@ class Ui_MainWindow(object):
             pixmap = QPixmap(self.File_path)
             self.ImageLabel.setPixmap(QPixmap(pixmap))
         else:
-            if self.DrawBoundingBoxesCheckBox.checkState() == True:
+            if self.DrawBoundingBoxesCheckBox.isChecked() == True:
                 displayed_image = self.changed_bounded_bacteria_image.copy()
             else:
                 displayed_image = self.changed_bacteria_image.copy()
