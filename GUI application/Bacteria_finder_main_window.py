@@ -86,7 +86,7 @@ class Ui_MainWindow(object):
         self.ThresholdingGroupBox.setFont(font)
         self.ThresholdingGroupBox.setObjectName("ThresholdingGroupBox")
         self.SetThresholdButton = QtWidgets.QPushButton(self.ThresholdingGroupBox)
-        self.SetThresholdButton.setGeometry(QtCore.QRect(310, 70, 141, 31))
+        self.SetThresholdButton.setGeometry(QtCore.QRect(310, 60, 141, 31))
         self.SetThresholdButton.setObjectName("SetThresholdButton")
         self.ThresholdSlider = QtWidgets.QSlider(self.ThresholdingGroupBox)
         self.ThresholdSlider.setGeometry(QtCore.QRect(10, 30, 441, 21))
@@ -97,16 +97,16 @@ class Ui_MainWindow(object):
         self.ThresholdSlider.setTickInterval(5)
         self.ThresholdSlider.setObjectName("ThresholdSlider")
         self.ThresholdSpinBox = QtWidgets.QSpinBox(self.ThresholdingGroupBox)
-        self.ThresholdSpinBox.setGeometry(QtCore.QRect(230, 70, 71, 31))
+        self.ThresholdSpinBox.setGeometry(QtCore.QRect(220, 60, 71, 31))
         self.ThresholdSpinBox.setMaximum(255)
         self.ThresholdSpinBox.setProperty("value", 127)
         self.ThresholdSpinBox.setObjectName("ThresholdSpinBox")
         self.InverseBinaryCheckBox = QtWidgets.QCheckBox(self.ThresholdingGroupBox)
-        self.InverseBinaryCheckBox.setGeometry(QtCore.QRect(10, 80, 151, 21))
+        self.InverseBinaryCheckBox.setGeometry(QtCore.QRect(10, 70, 151, 21))
         self.InverseBinaryCheckBox.setObjectName("InverseBinaryCheckBox")
         self.BoundingBoxesGroupBox = QtWidgets.QGroupBox(self.centralwidget)
         self.BoundingBoxesGroupBox.setEnabled(False)
-        self.BoundingBoxesGroupBox.setGeometry(QtCore.QRect(1040, 570, 231, 61))
+        self.BoundingBoxesGroupBox.setGeometry(QtCore.QRect(990, 500, 281, 131))
         font = QtGui.QFont()
         font.setFamily("MS Sans Serif")
         font.setPointSize(14)
@@ -116,6 +116,18 @@ class Ui_MainWindow(object):
         self.DrawBoundingBoxesCheckBox.setGeometry(QtCore.QRect(10, 30, 211, 21))
         self.DrawBoundingBoxesCheckBox.setTristate(False)
         self.DrawBoundingBoxesCheckBox.setObjectName("DrawBoundingBoxesCheckBox")
+        self.ApplySmallBoxesFilterCheckBox = QtWidgets.QCheckBox(self.BoundingBoxesGroupBox)
+        self.ApplySmallBoxesFilterCheckBox.setGeometry(QtCore.QRect(10, 60, 231, 21))
+        self.ApplySmallBoxesFilterCheckBox.setObjectName("ApplySmallBoxesFilterCheckBox")
+        self.MinAreaRatioDoubleSpinBox = QtWidgets.QDoubleSpinBox(self.BoundingBoxesGroupBox)
+        self.MinAreaRatioDoubleSpinBox.setGeometry(QtCore.QRect(150, 90, 121, 31))
+        self.MinAreaRatioDoubleSpinBox.setDecimals(6)
+        self.MinAreaRatioDoubleSpinBox.setMaximum(1.0)
+        self.MinAreaRatioDoubleSpinBox.setSingleStep(1e-06)
+        self.MinAreaRatioDoubleSpinBox.setObjectName("MinAreaRatioDoubleSpinBox")
+        self.MinAreaRatioLabel = QtWidgets.QLabel(self.BoundingBoxesGroupBox)
+        self.MinAreaRatioLabel.setGeometry(QtCore.QRect(10, 100, 131, 21))
+        self.MinAreaRatioLabel.setObjectName("MinAreaRatioLabel")
         self.UtilitiesGroupBox = QtWidgets.QGroupBox(self.centralwidget)
         self.UtilitiesGroupBox.setEnabled(False)
         self.UtilitiesGroupBox.setGeometry(QtCore.QRect(1020, 230, 251, 121))
@@ -125,7 +137,7 @@ class Ui_MainWindow(object):
         self.UtilitiesGroupBox.setFont(font)
         self.UtilitiesGroupBox.setObjectName("UtilitiesGroupBox")
         self.ReverseToOriginalButton = QtWidgets.QPushButton(self.UtilitiesGroupBox)
-        self.ReverseToOriginalButton.setGeometry(QtCore.QRect(70, 70, 171, 41))
+        self.ReverseToOriginalButton.setGeometry(QtCore.QRect(60, 70, 181, 41))
         font = QtGui.QFont()
         font.setFamily("MS Sans Serif")
         font.setPointSize(14)
@@ -157,6 +169,8 @@ class Ui_MainWindow(object):
         self.ReverseToOriginalButton.clicked.connect(self.ReverseToOriginalImage)
         self.InverseBinaryCheckBox.stateChanged.connect(self.InverseBinaryCheckBoxChanged)
         self.ShowOriginalImageCheckBox.stateChanged.connect(self.ShowOriginalImageCheckBoxChanged)
+        self.ApplySmallBoxesFilterCheckBox.stateChanged.connect(self.ApplySmallBoxesFilterCheckBoxChanged)
+        self.MinAreaRatioDoubleSpinBox.valueChanged.connect(self.ApplySmallBoxesFilterCheckBoxChanged)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -179,10 +193,24 @@ class Ui_MainWindow(object):
         self.InverseBinaryCheckBox.setText(_translate("MainWindow", "Inverse binary"))
         self.BoundingBoxesGroupBox.setTitle(_translate("MainWindow", "Bounding boxes"))
         self.DrawBoundingBoxesCheckBox.setText(_translate("MainWindow", "Draw bounding boxes"))
+        self.ApplySmallBoxesFilterCheckBox.setText(_translate("MainWindow", "Apply small boxes filter"))
+        self.MinAreaRatioLabel.setText(_translate("MainWindow", "Min area ratio:"))
         self.UtilitiesGroupBox.setTitle(_translate("MainWindow", "Utilities"))
         self.ReverseToOriginalButton.setText(_translate("MainWindow", "Reverse to original"))
         self.ShowOriginalImageCheckBox.setText(_translate("MainWindow", "Show original image"))
 
+    
+    def ApplySmallBoxesFilterCheckBoxChanged(self):
+        '''
+        Enables and disables MinAreaRatioDoubleSpinBox
+        '''
+        if self.ApplySmallBoxesFilterCheckBox.isChecked():
+            self.MinAreaRatioDoubleSpinBox.setEnabled(True)
+        else:
+            self.MinAreaRatioDoubleSpinBox.setEnabled(False)
+            self.MinAreaRatioDoubleSpinBox.setValue(0)
+
+        self.UpdateImage()
     
     def ShowOriginalImageCheckBoxChanged(self):
         '''
@@ -224,12 +252,6 @@ class Ui_MainWindow(object):
         '''
         Function, that switches between drawing bounding boxes or not
         '''
-        # Check the value of CheckBox
-        if value:
-            self.changed_bounded_bacteria_image = draw_annotations(self.changed_bacteria_image.copy(), get_boxes(self.changed_bacteria_image.copy()), thickness= 1)
-        else:
-            self.changed_bounded_bacteria_image = self.changed_bacteria_image.copy()
-
         # Updating the shown image
         self.UpdateImage()
     
@@ -247,7 +269,6 @@ class Ui_MainWindow(object):
         if self.DrawBoundingBoxesCheckBox.isChecked():
             self.changed_bacteria_image = threshold(self.channeled_bacteria_image, 
                                                     thresh=value, mode=inverse_binary_dict[self.InverseBinaryCheckBox.isChecked()])
-            self.changed_bounded_bacteria_image = draw_annotations(self.changed_bacteria_image.copy(), get_boxes(self.changed_bacteria_image), thickness= 1)
         else:
             self.changed_bacteria_image = threshold(self.channeled_bacteria_image, 
                                                     thresh=value, mode=inverse_binary_dict[self.InverseBinaryCheckBox.isChecked()])
@@ -266,7 +287,6 @@ class Ui_MainWindow(object):
         if self.DrawBoundingBoxesCheckBox.isChecked():
             self.changed_bacteria_image = threshold(self.channeled_bacteria_image, 
                                                     thresh=value, mode='direct')
-            self.changed_bounded_bacteria_image = draw_annotations(self.changed_bacteria_image.copy(), get_boxes(self.changed_bacteria_image), thickness= 1)
         else:
             self.changed_bacteria_image = threshold(self.channeled_bacteria_image, 
                                                     thresh=value, mode='direct')
@@ -300,8 +320,6 @@ class Ui_MainWindow(object):
         self.channeled_bacteria_image = self.changed_bacteria_image.copy()
         self.changed_bacteria_image = threshold(self.channeled_bacteria_image, 
                                                 thresh=self.ThresholdSpinBox.value(), mode='direct')
-        self.changed_bounded_bacteria_image = threshold(self.channeled_bacteria_image, 
-                                                        thresh=self.ThresholdSpinBox.value(), mode='direct')
         
         # Updating the shown image
         self.UpdateImage()
@@ -321,7 +339,6 @@ class Ui_MainWindow(object):
             self.UpdateImage(True)
         else:
             self.changed_bacteria_image = select_colorsp(self.original_bacteria_image, itemText_to_key[self.ChannelsComboBox.itemText(index)])
-            self.changed_bounded_bacteria_image = select_colorsp(self.original_bacteria_image, itemText_to_key[self.ChannelsComboBox.itemText(index)])
             # Updating the shown image
             self.UpdateImage()
     
@@ -346,9 +363,8 @@ class Ui_MainWindow(object):
         from previously chosen folder
         '''
         # Saving the image for future use in cv2
-        self.original_bacteria_image = cv2.imread(self.File_load_path)
+        self.original_bacteria_image = cv2.imdecode(np.fromfile(self.File_load_path, dtype=np.uint8), cv2.IMREAD_UNCHANGED)
         self.changed_bacteria_image = select_colorsp(self.original_bacteria_image, 'gray')
-        self.changed_bounded_bacteria_image = select_colorsp(self.original_bacteria_image, 'gray')
 
         # Enabling and disabling widgets
         self.ColorSpaceGroupBox.setEnabled(True)
@@ -364,6 +380,7 @@ class Ui_MainWindow(object):
         self.DrawBoundingBoxesCheckBox.setCheckState(False)
         self.InverseBinaryCheckBox.setCheckState(False)
         self.ShowOriginalImageCheckBox.setCheckState(False)
+        self.ApplySmallBoxesFilterCheckBox.setCheckState(False)
 
         # Displaying the image
         pixmap = QPixmap(self.File_load_path)
@@ -379,15 +396,19 @@ class Ui_MainWindow(object):
         else:
             if self.DrawBoundingBoxesCheckBox.isChecked():
                 if self.ShowOriginalImageCheckBox.isChecked():
-                    self.displayed_image = draw_annotations(self.original_bacteria_image.copy(), get_boxes(self.changed_bacteria_image.copy()),
+                    self.displayed_image = draw_annotations(self.original_bacteria_image.copy(), 
+                                                            get_filtered_bboxes(self.changed_bacteria_image.copy(), self.MinAreaRatioDoubleSpinBox.value()),
                                                             thickness= 1, color= (255, 0, 0))
                 else:
-                    self.displayed_image = self.changed_bounded_bacteria_image.copy()
+                    self.displayed_image = draw_annotations(self.changed_bacteria_image.copy(),
+                                                            get_filtered_bboxes(self.changed_bacteria_image.copy(), self.MinAreaRatioDoubleSpinBox.value()),
+                                                            thickness= 1)
             else:
                 if self.ShowOriginalImageCheckBox.isChecked():
                     self.displayed_image = self.original_bacteria_image.copy()
                 else:
                     self.displayed_image = self.changed_bacteria_image.copy()
+            
             height, width = self.displayed_image.shape[0], self.displayed_image.shape[1]
             if self.ShowOriginalImageCheckBox.isChecked():
                 Q_displayed_image = QImage(self.displayed_image.data, width, height, QImage.Format_RGB888).rgbSwapped()
