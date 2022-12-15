@@ -130,22 +130,55 @@ class Ui_MainWindow(object):
         self.MinAreaRatioLabel.setObjectName("MinAreaRatioLabel")
         self.UtilitiesGroupBox = QtWidgets.QGroupBox(self.centralwidget)
         self.UtilitiesGroupBox.setEnabled(False)
-        self.UtilitiesGroupBox.setGeometry(QtCore.QRect(1020, 230, 251, 121))
+        self.UtilitiesGroupBox.setGeometry(QtCore.QRect(1060, 380, 211, 121))
         font = QtGui.QFont()
         font.setFamily("MS Sans Serif")
         font.setPointSize(14)
         self.UtilitiesGroupBox.setFont(font)
         self.UtilitiesGroupBox.setObjectName("UtilitiesGroupBox")
         self.ReverseToOriginalButton = QtWidgets.QPushButton(self.UtilitiesGroupBox)
-        self.ReverseToOriginalButton.setGeometry(QtCore.QRect(60, 70, 181, 41))
+        self.ReverseToOriginalButton.setGeometry(QtCore.QRect(20, 70, 181, 41))
         font = QtGui.QFont()
         font.setFamily("MS Sans Serif")
         font.setPointSize(14)
         self.ReverseToOriginalButton.setFont(font)
         self.ReverseToOriginalButton.setObjectName("ReverseToOriginalButton")
         self.ShowOriginalImageCheckBox = QtWidgets.QCheckBox(self.UtilitiesGroupBox)
-        self.ShowOriginalImageCheckBox.setGeometry(QtCore.QRect(40, 30, 201, 31))
+        self.ShowOriginalImageCheckBox.setGeometry(QtCore.QRect(10, 30, 201, 31))
         self.ShowOriginalImageCheckBox.setObjectName("ShowOriginalImageCheckBox")
+        self.MorphologicalOperationsGroupBox = QtWidgets.QGroupBox(self.centralwidget)
+        self.MorphologicalOperationsGroupBox.setEnabled(False)
+        self.MorphologicalOperationsGroupBox.setGeometry(QtCore.QRect(810, 230, 461, 151))
+        font = QtGui.QFont()
+        font.setFamily("MS Sans Serif")
+        font.setPointSize(14)
+        self.MorphologicalOperationsGroupBox.setFont(font)
+        self.MorphologicalOperationsGroupBox.setObjectName("MorphologicalOperationsGroupBox")
+        self.DilateButton = QtWidgets.QPushButton(self.MorphologicalOperationsGroupBox)
+        self.DilateButton.setGeometry(QtCore.QRect(10, 30, 91, 31))
+        self.DilateButton.setObjectName("DilateButton")
+        self.ErodeButton = QtWidgets.QPushButton(self.MorphologicalOperationsGroupBox)
+        self.ErodeButton.setGeometry(QtCore.QRect(10, 70, 91, 31))
+        self.ErodeButton.setObjectName("ErodeButton")
+        self.OpenButton = QtWidgets.QPushButton(self.MorphologicalOperationsGroupBox)
+        self.OpenButton.setGeometry(QtCore.QRect(110, 30, 91, 31))
+        self.OpenButton.setObjectName("OpenButton")
+        self.CloseButton = QtWidgets.QPushButton(self.MorphologicalOperationsGroupBox)
+        self.CloseButton.setGeometry(QtCore.QRect(110, 70, 91, 31))
+        self.CloseButton.setObjectName("CloseButton")
+        self.UndoAllOperationsButton = QtWidgets.QPushButton(self.MorphologicalOperationsGroupBox)
+        self.UndoAllOperationsButton.setGeometry(QtCore.QRect(10, 110, 191, 31))
+        self.UndoAllOperationsButton.setObjectName("UndoAllOperationsButton")
+        self.MorphologicalOperationsTextBrowser = QtWidgets.QTextBrowser(self.MorphologicalOperationsGroupBox)
+        self.MorphologicalOperationsTextBrowser.setGeometry(QtCore.QRect(220, 70, 221, 71))
+        self.MorphologicalOperationsTextBrowser.setObjectName("MorphologicalOperationsTextBrowser")
+        self.KernelSizeSpinBox = QtWidgets.QSpinBox(self.MorphologicalOperationsGroupBox)
+        self.KernelSizeSpinBox.setGeometry(QtCore.QRect(390, 30, 51, 31))
+        self.KernelSizeSpinBox.setMinimum(1)
+        self.KernelSizeSpinBox.setObjectName("KernelSizeSpinBox")
+        self.PixelSizeOfKernelLabel = QtWidgets.QLabel(self.MorphologicalOperationsGroupBox)
+        self.PixelSizeOfKernelLabel.setGeometry(QtCore.QRect(220, 30, 171, 31))
+        self.PixelSizeOfKernelLabel.setObjectName("PixelSizeOfKernelLabel")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1280, 22))
@@ -159,18 +192,36 @@ class Ui_MainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
         # All the connections are below
+        # Load and Save
         self.LoadImageButton.clicked.connect(self.LoadImageButtonPushed)
+        self.SaveImageButton.clicked.connect(self.SaveImageButtonPushed)
+
+        # Color space
         self.ChannelsComboBox.activated.connect(self.ChannelsComboBoxChanged)
         self.SetColorSpaceButton.clicked.connect(self.SetColorSpaceButtonPushed)
+
+        # Thresholding
         self.ThresholdSlider.valueChanged.connect(self.ThresholdSliderChanged)
         self.ThresholdSpinBox.valueChanged.connect(self.ThresholdSpinBoxChanged)
-        self.DrawBoundingBoxesCheckBox.stateChanged.connect(self.DrawBoundingBoxesCheckBoxChanged)
-        self.SaveImageButton.clicked.connect(self.SaveImageButtonPushed)
-        self.ReverseToOriginalButton.clicked.connect(self.ReverseToOriginalImage)
         self.InverseBinaryCheckBox.stateChanged.connect(self.InverseBinaryCheckBoxChanged)
+        self.SetThresholdButton.clicked.connect(self.SetThresholdButtonPushed)
+
+        # Morphological operations
+        self.DilateButton.clicked.connect(self.DilateButtonPushed)
+        self.ErodeButton.clicked.connect(self.ErodeButtonPushed)
+        self.OpenButton.clicked.connect(self.OpenButtonPushed)
+        self.CloseButton.clicked.connect(self.CloseButtonPushed)
+        self.UndoAllOperationsButton.clicked.connect(self.UndoAllOperationsButtonPushed)
+
+        # Utilities
         self.ShowOriginalImageCheckBox.stateChanged.connect(self.ShowOriginalImageCheckBoxChanged)
+        self.ReverseToOriginalButton.clicked.connect(self.ReverseToOriginalImage)
+
+        # Bounding boxes
+        self.DrawBoundingBoxesCheckBox.stateChanged.connect(self.DrawBoundingBoxesCheckBoxChanged)
         self.ApplySmallBoxesFilterCheckBox.stateChanged.connect(self.ApplySmallBoxesFilterCheckBoxChanged)
         self.MinAreaRatioDoubleSpinBox.valueChanged.connect(self.ApplySmallBoxesFilterCheckBoxChanged)
+    
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -198,7 +249,71 @@ class Ui_MainWindow(object):
         self.UtilitiesGroupBox.setTitle(_translate("MainWindow", "Utilities"))
         self.ReverseToOriginalButton.setText(_translate("MainWindow", "Reverse to original"))
         self.ShowOriginalImageCheckBox.setText(_translate("MainWindow", "Show original image"))
+        self.MorphologicalOperationsGroupBox.setTitle(_translate("MainWindow", "Morphological operations"))
+        self.DilateButton.setText(_translate("MainWindow", "Dilate"))
+        self.ErodeButton.setText(_translate("MainWindow", "Erode"))
+        self.OpenButton.setText(_translate("MainWindow", "Open"))
+        self.CloseButton.setText(_translate("MainWindow", "Close"))
+        self.UndoAllOperationsButton.setText(_translate("MainWindow", "Undo all operations"))
+        self.PixelSizeOfKernelLabel.setText(_translate("MainWindow", "Pixel size of kernel:"))
 
+    
+    def DilateButtonPushed(self):
+        '''
+        Perform dilate operation on image
+        '''
+        self.changed_bacteria_image = morph_op(self.changed_bacteria_image.copy(), mode = 'dilate', ksize = self.KernelSizeSpinBox.value(), iterations= 1)
+        self.UpdateImage()
+
+        self.MorphologicalOperationsTextBrowser.setText(self.MorphologicalOperationsTextBrowser.toPlainText() + "dilate\n")
+
+    def ErodeButtonPushed(self):
+        '''
+        Perform dilate operation on image
+        '''
+        self.changed_bacteria_image = morph_op(self.changed_bacteria_image.copy(), mode = 'erode', ksize = self.KernelSizeSpinBox.value(), iterations= 1)
+        self.UpdateImage()
+
+        self.MorphologicalOperationsTextBrowser.setText(self.MorphologicalOperationsTextBrowser.toPlainText() + "erode\n")
+
+    def OpenButtonPushed(self):
+        '''
+        Perform dilate operation on image
+        '''
+        self.changed_bacteria_image = morph_op(self.changed_bacteria_image.copy(), mode = 'open', ksize = self.KernelSizeSpinBox.value(), iterations= 1)
+        self.UpdateImage()
+
+        self.MorphologicalOperationsTextBrowser.setText(self.MorphologicalOperationsTextBrowser.toPlainText() + "open\n")
+
+    def CloseButtonPushed(self):
+        '''
+        Perform dilate operation on image
+        '''
+        self.changed_bacteria_image = morph_op(self.changed_bacteria_image.copy(), mode = 'close', ksize = self.KernelSizeSpinBox.value(), iterations= 1)
+        self.UpdateImage()
+
+        self.MorphologicalOperationsTextBrowser.setText(self.MorphologicalOperationsTextBrowser.toPlainText() + "close\n")
+
+    def UndoAllOperationsButtonPushed(self):
+        '''
+        Undo all operations, return to tresholded image
+        '''
+        self.changed_bacteria_image = self.thresholded_bacteria_image.copy()
+        self.UpdateImage()
+
+        self.MorphologicalOperationsTextBrowser.setText('')
+
+    
+    def SetThresholdButtonPushed(self):
+        '''
+        Fixates the result of thresholding
+        '''
+        # Disabling and enabling
+        self.ThresholdingGroupBox.setEnabled(False)
+        self.MorphologicalOperationsGroupBox.setEnabled(True)
+
+        # Saving thresholded image
+        self.thresholded_bacteria_image = self.changed_bacteria_image.copy()
     
     def ApplySmallBoxesFilterCheckBoxChanged(self):
         '''
@@ -368,10 +483,11 @@ class Ui_MainWindow(object):
 
         # Enabling and disabling widgets
         self.ColorSpaceGroupBox.setEnabled(True)
+        self.SaveImageButton.setEnabled(True)
         self.ThresholdingGroupBox.setEnabled(False)
         self.BoundingBoxesGroupBox.setEnabled(False)
         self.UtilitiesGroupBox.setEnabled(False)
-        self.SaveImageButton.setEnabled(True)
+        self.MorphologicalOperationsGroupBox.setEnabled(False)
 
         # Returning to default settings
         self.ChannelsComboBox.setCurrentIndex(0)
@@ -381,6 +497,7 @@ class Ui_MainWindow(object):
         self.InverseBinaryCheckBox.setCheckState(False)
         self.ShowOriginalImageCheckBox.setCheckState(False)
         self.ApplySmallBoxesFilterCheckBox.setCheckState(False)
+        self.MorphologicalOperationsTextBrowser.setText('')
 
         # Displaying the image
         pixmap = QPixmap(self.File_load_path)

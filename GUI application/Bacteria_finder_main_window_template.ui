@@ -364,9 +364,9 @@
     </property>
     <property name="geometry">
      <rect>
-      <x>1020</x>
-      <y>230</y>
-      <width>251</width>
+      <x>1060</x>
+      <y>380</y>
+      <width>211</width>
       <height>121</height>
      </rect>
     </property>
@@ -382,7 +382,7 @@
     <widget class="QPushButton" name="ReverseToOriginalButton">
      <property name="geometry">
       <rect>
-       <x>60</x>
+       <x>20</x>
        <y>70</y>
        <width>181</width>
        <height>41</height>
@@ -401,7 +401,7 @@
     <widget class="QCheckBox" name="ShowOriginalImageCheckBox">
      <property name="geometry">
       <rect>
-       <x>40</x>
+       <x>10</x>
        <y>30</y>
        <width>201</width>
        <height>31</height>
@@ -409,6 +409,129 @@
      </property>
      <property name="text">
       <string>Show original image</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="MorphologicalOperationsGroupBox">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>810</x>
+      <y>230</y>
+      <width>461</width>
+      <height>151</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>MS Sans Serif</family>
+      <pointsize>14</pointsize>
+     </font>
+    </property>
+    <property name="title">
+     <string>Morphological operations</string>
+    </property>
+    <widget class="QPushButton" name="DilateButton">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>30</y>
+       <width>91</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Dilate</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="ErodeButton">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>70</y>
+       <width>91</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Erode</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="OpenButton">
+     <property name="geometry">
+      <rect>
+       <x>110</x>
+       <y>30</y>
+       <width>91</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Open</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="CloseButton">
+     <property name="geometry">
+      <rect>
+       <x>110</x>
+       <y>70</y>
+       <width>91</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Close</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="UndoAllOperationsButton">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>110</y>
+       <width>191</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Undo all operations</string>
+     </property>
+    </widget>
+    <widget class="QTextBrowser" name="MorphologicalOperationsTextBrowser">
+     <property name="geometry">
+      <rect>
+       <x>220</x>
+       <y>70</y>
+       <width>221</width>
+       <height>71</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QSpinBox" name="KernelSizeSpinBox">
+     <property name="geometry">
+      <rect>
+       <x>390</x>
+       <y>30</y>
+       <width>51</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="minimum">
+      <number>1</number>
+     </property>
+    </widget>
+    <widget class="QLabel" name="PixelSizeOfKernelLabel">
+     <property name="geometry">
+      <rect>
+       <x>220</x>
+       <y>30</y>
+       <width>171</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Pixel size of kernel:</string>
      </property>
     </widget>
    </widget>
