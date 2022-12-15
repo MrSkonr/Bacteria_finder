@@ -139,6 +139,8 @@ class Ui_MainWindow(object):
         self.ThresholdSlider.valueChanged.connect(self.ThresholdSliderChanged)
         self.ThresholdSpinBox.valueChanged.connect(self.ThresholdSpinBoxChanged)
         self.DrawBoundingBoxesCheckBox.stateChanged.connect(self.DrawBoundingBoxesCheckBoxChanged)
+        self.SaveImageButton.clicked.connect(self.SaveImageButtonPushed)
+        self.ReverseToOriginalButton.clicked.connect(self.ReverseToOriginalImage)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -162,6 +164,34 @@ class Ui_MainWindow(object):
         self.DrawBoundingBoxesCheckBox.setText(_translate("MainWindow", "Draw bounding boxes"))
         self.ReverseToOriginalButton.setText(_translate("MainWindow", "Reverse to original"))
 
+
+    def SaveImageButtonPushed(self):
+        '''
+        Function, opens save dialog window and saves the shown image
+        '''
+        # Checking if "Original image" is still chosen
+        if self.ChannelsComboBox.currentText() == "Original image":
+            warn_msg = QtWidgets.QMessageBox()
+            warn_msg.setWindowTitle("Bacteria finder")
+            warn_msg.setText("Please choose one of the color channels")
+            warn_msg.setIcon(QtWidgets.QMessageBox.Warning)
+            warn_msg.exec_()
+            return
+        
+        # Getting the path for the image
+        self.File_save_name = QtWidgets.QFileDialog.getSaveFileName(self.ImageLabel, 'Save file', '', "Image files (*.png *.jpg *.bmp *.gif)")
+        self.File_save_path = self.File_save_name[0]
+
+        # Check if the user didn't choose the path
+        if self.File_save_path == '':
+            return
+
+        # Saving in choisen path
+        if self.DrawBoundingBoxesCheckBox.isChecked() == True:
+            cv2.imwrite(self.File_save_path, self.changed_bounded_bacteria_image.copy())
+        else:
+            cv2.imwrite(self.File_save_path, self.changed_bacteria_image.copy())
+    
     def DrawBoundingBoxesCheckBoxChanged(self, value):
         '''
         Function, that switches between drawing bounding boxes or not
@@ -265,23 +295,26 @@ class Ui_MainWindow(object):
     
     def LoadImageButtonPushed(self):
         '''
-        Function, that: 
-        1) loads the image
-        2) saves the image in cv2
-        3) enables and disables Group Boxes and buttons
-        4) returns all settings to default
-        3) displays it in application
+        Function, that loads the path to image
         '''
         # Loading the image
-        self.File_name = QtWidgets.QFileDialog.getOpenFileName(self.ImageLabel, 'Open file', '', "Image files (*.png *.jpg *.bmp *.gif)")
-        self.File_path = self.File_name[0]
+        self.File_load_name = QtWidgets.QFileDialog.getOpenFileName(self.ImageLabel, 'Open file', '', "Image files (*.png *.jpg *.bmp *.gif)")
+        self.File_load_path = self.File_load_name[0]
 
         # Check if the user didn't choose the file
-        if self.File_path == '':
+        if self.File_load_path == '':
             return
 
+        # Calls the reverse function
+        self.ReverseToOriginalImage()
+
+    def ReverseToOriginalImage(self):
+        '''
+        Function, that reverses all changes made by user and reloads the image
+        from previously chosen folder
+        '''
         # Saving the image for future use in cv2
-        self.original_bacteria_image = cv2.imread(self.File_path)
+        self.original_bacteria_image = cv2.imread(self.File_load_path)
         self.changed_bacteria_image = select_colorsp(self.original_bacteria_image, 'gray')
         self.changed_bounded_bacteria_image = select_colorsp(self.original_bacteria_image, 'gray')
 
@@ -299,9 +332,9 @@ class Ui_MainWindow(object):
         self.DrawBoundingBoxesCheckBox.setCheckState(False)
 
         # Displaying the image
-        pixmap = QPixmap(self.File_path)
+        pixmap = QPixmap(self.File_load_path)
         self.ImageLabel.setPixmap(QPixmap(pixmap))
-
+    
     def UpdateImage(self, return_to_orig = False):
         '''
         Function, that updates image in the ImageLabel
