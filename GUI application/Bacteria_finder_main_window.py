@@ -361,7 +361,9 @@ class Ui_MainWindow(object):
             return
 
         # Saving in choisen path
-        cv2.imwrite(self.File_save_path, self.displayed_image.copy())
+        _, buffed_image = cv2.imencode("." + self.File_save_path.split('/')[-1].split('.')[-1], self.displayed_image.copy())
+        buffed_image.tofile(self.File_save_path)
+        # cv2.imwrite(self.File_save_path, self.displayed_image.copy())
     
     def DrawBoundingBoxesCheckBoxChanged(self, value):
         '''
