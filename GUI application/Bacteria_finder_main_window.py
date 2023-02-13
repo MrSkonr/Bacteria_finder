@@ -16,7 +16,6 @@ sys.path.append('../Bacteria_finder')
 
 from Annotation_functions import *
 
-
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -221,6 +220,57 @@ class Ui_MainWindow(object):
         self.DrawBoundingBoxesCheckBox.stateChanged.connect(self.DrawBoundingBoxesCheckBoxChanged)
         self.ApplySmallBoxesFilterCheckBox.stateChanged.connect(self.ApplySmallBoxesFilterCheckBoxChanged)
         self.MinAreaRatioDoubleSpinBox.valueChanged.connect(self.ApplySmallBoxesFilterCheckBoxChanged)
+
+        # Zoom
+        Ui_MainWindow_main = self
+        Ui_MainWindow_main.ZoomRectangle_flag = False
+        Ui_MainWindow_main.OrigRectangle = self.ImageLabel.size()
+        Ui_MainWindow_main.ZoomRectangle = QtCore.QRect(QtCore.QPoint(0,0), self.ImageLabel.size()).normalized()
+        class ZoomEventFilterClass(QtCore.QObject):
+
+            def __init__(self, parent):
+                super(ZoomEventFilterClass, self).__init__(parent)
+                self.rubberBand = QtWidgets.QRubberBand(QtWidgets.QRubberBand.Rectangle, parent)
+                self.origin = QtCore.QPoint()
+
+            def eventFilter(self, source, event):
+                '''
+                Event filter for QLabel zoom
+                '''
+                event_type = event.type()
+                if Ui_MainWindow_main.ChannelsComboBox.currentText() != "Original image":
+                    if event_type == QtCore.QEvent.MouseButtonPress:
+                        if event.button() == QtCore.Qt.LeftButton and Ui_MainWindow_main.ZoomRectangle_flag == False:
+                            self.origin = QtCore.QPoint(event.pos())
+                            self.rubberBand = QtWidgets.QRubberBand(QtWidgets.QRubberBand.Rectangle, source)
+                            self.rubberBand.setGeometry(QtCore.QRect(self.origin, QtCore.QSize()))
+                            self.rubberBand.show()
+                        elif event.button() == QtCore.Qt.RightButton and Ui_MainWindow_main.ZoomRectangle_flag == True:
+                            Ui_MainWindow_main.ZoomRectangle = QtCore.QRect(QtCore.QPoint(0,0), Ui_MainWindow_main.OrigRectangle)
+                            Ui_MainWindow_main.ZoomRectangle_flag = False
+                            Ui_MainWindow_main.UpdateImage()
+
+                    if event_type == QtCore.QEvent.MouseMove:
+                        if not self.origin.isNull() and Ui_MainWindow_main.ZoomRectangle_flag == False:
+                            self.rubberBand.setGeometry(QtCore.QRect(self.origin, event.pos()).normalized())
+
+                    if event_type == QtCore.QEvent.MouseButtonRelease:
+                        if event.button() == QtCore.Qt.LeftButton and Ui_MainWindow_main.ZoomRectangle_flag == False:
+                            self.rubberBand.hide()
+                            self.end = QtCore.QPoint(event.pos())
+                            self.end.setX(self.end.x() * Ui_MainWindow_main.ZoomCoeff[1])
+                            self.end.setY(self.end.y() * Ui_MainWindow_main.ZoomCoeff[0])
+                            self.origin.setX(self.origin.x() * Ui_MainWindow_main.ZoomCoeff[1])
+                            self.origin.setY(self.origin.y() * Ui_MainWindow_main.ZoomCoeff[0])
+                            Ui_MainWindow_main.ZoomRectangle = QtCore.QRect(self.origin, self.end).normalized()
+                            Ui_MainWindow_main.ZoomRectangle_flag = True
+                            Ui_MainWindow_main.UpdateImage()
+                
+                return super().eventFilter(source, event)
+        
+        self.ImageLabel.setMouseTracking(True)
+        self.filter = ZoomEventFilterClass(self.ImageLabel)
+        self.ImageLabel.installEventFilter(self.filter)
     
 
     def retranslateUi(self, MainWindow):
@@ -256,7 +306,6 @@ class Ui_MainWindow(object):
         self.CloseButton.setText(_translate("MainWindow", "Close"))
         self.UndoAllOperationsButton.setText(_translate("MainWindow", "Undo all operations"))
         self.PixelSizeOfKernelLabel.setText(_translate("MainWindow", "Pixel size of kernel:"))
-
     
     def DilateButtonPushed(self):
         '''
@@ -482,6 +531,8 @@ class Ui_MainWindow(object):
         # Saving the image for future use in cv2
         self.original_bacteria_image = cv2.imdecode(np.fromfile(self.File_load_path, dtype=np.uint8), cv2.IMREAD_UNCHANGED)
         self.changed_bacteria_image = select_colorsp(self.original_bacteria_image, 'gray')
+        self.ZoomCoeff = [self.original_bacteria_image.shape[0]/self.ImageLabel.size().height(),
+                            self.original_bacteria_image.shape[1]/self.ImageLabel.size().width()]
 
         # Enabling and disabling widgets
         self.ColorSpaceGroupBox.setEnabled(True)
@@ -501,9 +552,17 @@ class Ui_MainWindow(object):
         self.ApplySmallBoxesFilterCheckBox.setCheckState(False)
         self.MorphologicalOperationsTextBrowser.setText('')
 
+        # Cancelling zoom
+        self.ZoomRectangle_flag = False
+        self.OrigRectangle = self.ImageLabel.size()
+        self.ZoomRectangle = QtCore.QRect(QtCore.QPoint(0,0), self.ImageLabel.size()).normalized()
+
         # Displaying the image
         pixmap = QPixmap(self.File_load_path)
-        self.ImageLabel.setPixmap(QPixmap(pixmap))
+        if self.ZoomRectangle_flag:
+            self.ImageLabel.setPixmap(QPixmap(pixmap).copy(self.ZoomRectangle))
+        else:
+            self.ImageLabel.setPixmap(QPixmap(pixmap))
     
     def UpdateImage(self, return_to_orig = False):
         '''
@@ -511,7 +570,10 @@ class Ui_MainWindow(object):
         '''
         if return_to_orig:
             pixmap = QPixmap(self.File_load_path)
-            self.ImageLabel.setPixmap(QPixmap(pixmap))
+            if self.ZoomRectangle_flag:
+                self.ImageLabel.setPixmap(QPixmap(pixmap).copy(self.ZoomRectangle))
+            else:
+                self.ImageLabel.setPixmap(QPixmap(pixmap))
         else:
             if self.DrawBoundingBoxesCheckBox.isChecked():
                 if self.ShowOriginalImageCheckBox.isChecked():
@@ -530,11 +592,14 @@ class Ui_MainWindow(object):
             
             height, width = self.displayed_image.shape[0], self.displayed_image.shape[1]
             if self.ShowOriginalImageCheckBox.isChecked():
-                Q_displayed_image = QImage(self.displayed_image.data, width, height, QImage.Format_RGB888).rgbSwapped()
+                Q_displayed_image = QImage(self.displayed_image.data, width, height, width * 3, QImage.Format_RGB888).rgbSwapped()
             else:
-                Q_displayed_image = QImage(self.displayed_image.data, width, height, QImage.Format_Grayscale8)
+                Q_displayed_image = QImage(self.displayed_image.data, width, height, width, QImage.Format_Grayscale8)
             Q_displayed_image_pixmap = QPixmap.fromImage(Q_displayed_image)
-            self.ImageLabel.setPixmap(Q_displayed_image_pixmap)
+            if self.ZoomRectangle_flag:
+                self.ImageLabel.setPixmap(Q_displayed_image_pixmap.copy(self.ZoomRectangle))
+            else:
+                self.ImageLabel.setPixmap(Q_displayed_image_pixmap)
 
 
 if __name__ == "__main__":
