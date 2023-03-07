@@ -13,7 +13,7 @@ def select_colorsp(img, colorsp='gray'):
 
     output
 
-    channels[colorsp]:      np.array HxWx3 in specified color space
+    channels[colorsp]:      np.array HxW in specified color space
     '''
 
     # Convert to grayscale
