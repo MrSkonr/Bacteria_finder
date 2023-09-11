@@ -148,31 +148,33 @@ class Bacteria_segmentor():
         return current_mask
 
 
-    def pipeline(self, file_path, save_path):
-        self.file_path = file_path
-        self.save_path = save_path
+    def pipeline(self, in_image, mode = "all"):
 
-        self.bacteria = cv2.imdecode(np.fromfile(file_path, dtype=np.uint8), cv2.IMREAD_UNCHANGED)
+        self.bacteria = in_image
         self.one_channel_bacteria = self.Grayscaling(self.bacteria)
         self.one_channel_bacteria_filtered = self.Filtering(self.one_channel_bacteria)
         self.one_channel_bacteria_filtered_thresholded = self.Thresholding(self.one_channel_bacteria_filtered)
         self.one_channel_bacteria_filtered_thresholded_labels = self.Segmentation(self.one_channel_bacteria_filtered_thresholded)
 
-        self.one_channel_bacteria_bacili_labels = np.zeros_like(self.one_channel_bacteria_filtered_thresholded_labels)
-        self.one_channel_bacteria_cocci_labels = np.zeros_like(self.one_channel_bacteria_filtered_thresholded_labels)
-        self.one_channel_bacteria_grouped_labels = np.zeros_like(self.one_channel_bacteria_filtered_thresholded_labels)
-        self.one_channel_bacteria_misc_labels = np.zeros_like(self.one_channel_bacteria_filtered_thresholded_labels)
-        # obtaining bounding boxes and classifying them
-        self.bboxes = self.get_bboxs(self.one_channel_bacteria_filtered_thresholded_labels, np.unique(self.one_channel_bacteria_filtered_thresholded_labels)[1:])
-        self.image_out = cv2.cvtColor(self.bacteria, cv2.COLOR_BGR2RGB)
-        self.Classify(self.bboxes)
-        self.image_out = mark_boundaries(self.image_out, self.one_channel_bacteria_bacili_labels, color=(0, 128/255, 0)) 
-        self.image_out = mark_boundaries(self.image_out, self.one_channel_bacteria_cocci_labels, color=(66/255, 170/255, 255/255))
-        self.image_out = mark_boundaries(self.image_out, self.one_channel_bacteria_grouped_labels, color=(139/255, 0, 1))
-        self.image_out = mark_boundaries(self.image_out, self.one_channel_bacteria_misc_labels, color=(0, 0, 0))
-
-        is_success, im_buf = cv2.imencode(".bmp", cv2.cvtColor(cv2.normalize(self.image_out, None, 255, 0, cv2.NORM_MINMAX, cv2.CV_8U), cv2.COLOR_BGR2RGB))
-        im_buf.tofile(save_path + ".bmp")
+        if mode != "all":
+            self.image_out = np.uint8(mark_boundaries(cv2.cvtColor(self.bacteria, cv2.COLOR_BGR2RGB), 
+                                        self.one_channel_bacteria_filtered_thresholded_labels, 
+                                        color=(28/255, 37/255, 22/255))*255)[:,:,::-1]
+            return self.image_out
+        else:
+            self.one_channel_bacteria_bacili_labels = np.zeros_like(self.one_channel_bacteria_filtered_thresholded_labels)
+            self.one_channel_bacteria_cocci_labels = np.zeros_like(self.one_channel_bacteria_filtered_thresholded_labels)
+            self.one_channel_bacteria_grouped_labels = np.zeros_like(self.one_channel_bacteria_filtered_thresholded_labels)
+            self.one_channel_bacteria_misc_labels = np.zeros_like(self.one_channel_bacteria_filtered_thresholded_labels)
+            # obtaining bounding boxes and classifying them
+            self.bboxes = self.get_bboxs(self.one_channel_bacteria_filtered_thresholded_labels, np.unique(self.one_channel_bacteria_filtered_thresholded_labels)[1:])
+            self.image_out = cv2.cvtColor(self.bacteria, cv2.COLOR_BGR2RGB)
+            self.Classify(self.bboxes)
+            self.image_out = mark_boundaries(self.image_out, self.one_channel_bacteria_bacili_labels, color=(0, 128/255, 0)) 
+            self.image_out = mark_boundaries(self.image_out, self.one_channel_bacteria_cocci_labels, color=(66/255, 170/255, 255/255))
+            self.image_out = mark_boundaries(self.image_out, self.one_channel_bacteria_grouped_labels, color=(139/255, 0, 1))
+            self.image_out = mark_boundaries(self.image_out, self.one_channel_bacteria_misc_labels, color=(0, 0, 0))
+            return np.uint8(self.image_out*255)[:,:,::-1]
 
 
 
