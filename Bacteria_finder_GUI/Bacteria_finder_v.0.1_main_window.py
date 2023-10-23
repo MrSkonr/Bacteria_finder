@@ -1,14 +1,15 @@
-import sys
-sys.path.append('../Bacteria_finder')
-sys.path.append('../Bacteria_finder/Bacteria_finder_GUI')
-sys.path.append('../Bacteria_finder/Bacteria_finder_core')
+from sys import path
 
-import cv2
-import numpy as np
-from Bacteria_finder_core.segmentor import Bacteria_segmentor
+path.append('../Bacteria_finder')
+path.append('../Bacteria_finder/Bacteria_finder_GUI')
+path.append('../Bacteria_finder/Bacteria_finder_core')
 
+from cv2 import IMREAD_UNCHANGED, imdecode, imencode
+from numpy import fromfile, uint8
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QPixmap, QImage
+from PyQt5.QtGui import QImage, QPixmap
+
+from Bacteria_finder_core.segmentor import Bacteria_segmentor
 
 
 class Ui_MainWindow(object):
@@ -166,7 +167,7 @@ class Ui_MainWindow(object):
             return
 
         # Saving in choisen path
-        _, buffed_image = cv2.imencode("." + self.File_save_path.split('/')[-1].split('.')[-1], self.shown_bacteria_image.copy())
+        _, buffed_image = imencode("." + self.File_save_path.split('/')[-1].split('.')[-1], self.shown_bacteria_image.copy())
         buffed_image.tofile(self.File_save_path)
 
     def LoadImageButtonPushed(self):
@@ -196,7 +197,7 @@ class Ui_MainWindow(object):
         self.classified_bacteria_image = None
 
         # Saving the image for future use in cv2
-        self.shown_bacteria_image = cv2.imdecode(np.fromfile(self.File_load_path, dtype=np.uint8), cv2.IMREAD_UNCHANGED)
+        self.shown_bacteria_image = imdecode(fromfile(self.File_load_path, dtype=uint8), IMREAD_UNCHANGED)
         self.original_bacteria_image = self.shown_bacteria_image.copy()
 
         # Enabling and disabling widgets
