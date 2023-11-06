@@ -5,7 +5,7 @@ block_cipher = None
 
 
 a = Analysis(
-    ['Bacteria_finder_v.0.1_main_window.py'],
+    ['Bacteria_finder_v.0.2_main_window.py'],
     pathex=['../Bacteria_finder_core', '../'],
     binaries=[],
     datas=[('../Bacteria_finder_GUI/blank.png', './Bacteria_finder_GUI'), ('../Bacteria_finder_core/trained_model_masks_MobileNetV2_2M_v3.pt', './Bacteria_finder_core')],
@@ -26,7 +26,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='Bacteria_finder_v.0.1',
+    name='Bacteria_finder_v.0.2',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -46,5 +46,5 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='Bacteria_finder_v.0.1',
+    name='Bacteria_finder_v.0.2',
 )
