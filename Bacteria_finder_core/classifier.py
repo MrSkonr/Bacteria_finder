@@ -1,15 +1,12 @@
+import numpy as np
+import torch
+import torch.nn as nn
+from torch import nn
 from types import SimpleNamespace
 
-from numpy import ceil
-from torch import manual_seed
-from torch.nn import (GELU, AdaptiveAvgPool2d, BatchNorm2d, Conv2d, Dropout,
-                      Flatten, LeakyReLU, Linear, Module, ReLU, ReLU6,
-                      Sequential, Tanh)
-from torch.nn.init import constant_, kaiming_normal_
+torch.manual_seed(810)
 
-manual_seed(810)
-
-class MobileNetBlock(Module):
+class MobileNetBlock(nn.Module):
 
     def __init__(self, c_in, act_fn, c_out, expand_ratio, stride):
         """
@@ -24,27 +21,27 @@ class MobileNetBlock(Module):
         self.use_res_connect = self.stride == 1 and c_in == c_out
 
         if expand_ratio == 1:
-            self.net = Sequential(
-            Dropout(0.2),
-            Conv2d(hidden_dim, 1*hidden_dim, kernel_size=3, padding=1, stride = stride, bias = False, groups=hidden_dim),
-            BatchNorm2d(hidden_dim),
+            self.net = nn.Sequential(
+            nn.Dropout(0.2),
+            nn.Conv2d(hidden_dim, 1*hidden_dim, kernel_size=3, padding=1, stride = stride, bias = False, groups=hidden_dim),
+            nn.BatchNorm2d(hidden_dim),
             act_fn(),
-            Conv2d(hidden_dim, c_out, 1, 1, 0, bias=False),
-            BatchNorm2d(c_out),
+            nn.Conv2d(hidden_dim, c_out, 1, 1, 0, bias=False),
+            nn.BatchNorm2d(c_out),
         )
         else:
-            self.net = Sequential(
-            Conv2d(c_in, 1*hidden_dim, 1, 1, 0, bias = False),
-            BatchNorm2d(hidden_dim),
+            self.net = nn.Sequential(
+            nn.Conv2d(c_in, 1*hidden_dim, 1, 1, 0, bias = False),
+            nn.BatchNorm2d(hidden_dim),
             act_fn(),
             # dw
-            Dropout(0.2),
-            Conv2d(hidden_dim, hidden_dim, 3, stride, 1, groups=hidden_dim, bias=False),
-            BatchNorm2d(hidden_dim),
+            nn.Dropout(0.2),
+            nn.Conv2d(hidden_dim, hidden_dim, 3, stride, 1, groups=hidden_dim, bias=False),
+            nn.BatchNorm2d(hidden_dim),
             act_fn(),
             # linear
-            Conv2d(hidden_dim, c_out, 1, 1, 0, bias=False),
-            BatchNorm2d(c_out),
+            nn.Conv2d(hidden_dim, c_out, 1, 1, 0, bias=False),
+            nn.BatchNorm2d(c_out),
         )
         
 
@@ -56,18 +53,18 @@ class MobileNetBlock(Module):
         return z
 
 act_fn_by_name = {
-    "tanh": Tanh,
-    "relu": ReLU,
-    "relu6": ReLU6,
-    "leakyrelu": LeakyReLU,
-    "gelu": GELU
+    "tanh": nn.Tanh,
+    "relu": nn.ReLU,
+    "relu6": nn.ReLU6,
+    "leakyrelu": nn.LeakyReLU,
+    "gelu": nn.GELU
 }
 
 resnet_blocks_by_name = {
     "MobileNetBlock": MobileNetBlock
 }
     
-class MobileNetV2(Module):
+class MobileNetV2(nn.Module):
 
     def __init__(self, num_classes=4, num_blocks=[1,2,3,4,3,3,1], expand_ratio = [1,6,6,6,6,6,6],
                 c_hidden=[16, 24, 32, 64, 96, 160, 320], strides = [1, 2, 2, 2, 1, 2, 1], width_mult = 1,
@@ -102,15 +99,15 @@ class MobileNetV2(Module):
 
         # A first convolution on the original image to scale up the channel size
         if self.hparams.block_class == MobileNetBlock: # => Don't apply non-linearity on output
-            self.input_net = Sequential(
-                Conv2d(4, self.input_channel, kernel_size=3, padding=1, stride = 2, bias=False)
+            self.input_net = nn.Sequential(
+                nn.Conv2d(4, self.input_channel, kernel_size=3, padding=1, stride = 2, bias=False)
             )
 
         # Creating the MobileNet blocks
         blocks = []
         for block_idx, block_count in enumerate(self.hparams.num_blocks):
             for bc in range(block_count):
-                output_channel = int(ceil(c_hidden[block_idx] * self.hparams.width_mult* 1./8) * 8) if bc > 1 else c_hidden[block_idx]
+                output_channel = int(np.ceil(c_hidden[block_idx] * self.hparams.width_mult* 1./8) * 8) if bc > 1 else c_hidden[block_idx]
                 if bc == 0:    
                     blocks.append(
                             self.hparams.block_class(c_in=self.input_channel,
@@ -129,26 +126,26 @@ class MobileNetV2(Module):
                         )
                 self.input_channel = output_channel
 
-        self.blocks = Sequential(*blocks)
+        self.blocks = nn.Sequential(*blocks)
 
         # Mapping to classification output
-        self.output_net = Sequential(
-            Conv2d(c_hidden[-1], int(ceil(1280 * self.hparams.width_mult* 1./8) * 8), 1, 1, 0, bias=False),
-            BatchNorm2d(int(ceil(1280 * self.hparams.width_mult* 1./8) * 8)),
+        self.output_net = nn.Sequential(
+            nn.Conv2d(c_hidden[-1], int(np.ceil(1280 * self.hparams.width_mult* 1./8) * 8), 1, 1, 0, bias=False),
+            nn.BatchNorm2d(int(np.ceil(1280 * self.hparams.width_mult* 1./8) * 8)),
             self.hparams.act_fn(),
-            AdaptiveAvgPool2d((1,1)),
-            Flatten(),
-            Dropout(0.2),
-            Linear(int(ceil(1280 * self.hparams.width_mult* 1./8) * 8), self.hparams.num_classes)
+            nn.AdaptiveAvgPool2d((1,1)),
+            nn.Flatten(),
+            nn.Dropout(0.2),
+            nn.Linear(int(np.ceil(1280 * self.hparams.width_mult* 1./8) * 8), self.hparams.num_classes)
         )
 
     def _init_params(self):
         for m in self.modules():
-            if isinstance(m, Conv2d):
-                kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
-            elif isinstance(m, BatchNorm2d):
-                constant_(m.weight, 1)
-                constant_(m.bias, 0)
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
 
     def forward(self, x):
         x = self.input_net(x)
