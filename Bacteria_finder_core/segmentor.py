@@ -1,32 +1,39 @@
 
-import sys
-sys.path.append('../Bacteria_finder')
-sys.path.append('../Bacteria_finder/Bacteria_finder_core')
-import numpy as np
-import torch
-import cv2
+from sys import path
 
-from skimage.segmentation import felzenszwalb, watershed, mark_boundaries
-from skimage.filters import sobel
-
+path.append('../Bacteria_finder')
+path.append('../Bacteria_finder/Bacteria_finder_core')
 from cellpose import core
 from cellpose_omni import models
-from omnipose.utils import normalize99
-
 from classifier import MobileNetV2
+from cv2 import (COLOR_BGR2RGB, THRESH_TRIANGLE, THRESH_TRUNC, bilateralFilter,
+                 cvtColor, threshold)
+from numpy import (append, float32, max, min, pad, transpose, uint8, unique,
+                   where, zeros_like)
+from omnipose.utils import normalize99
+from skimage.filters import sobel
+from skimage.segmentation import felzenszwalb, mark_boundaries, watershed
+from torch import cuda, device, load, tensor
+
 
 class Bacteria_segmentor():
 
     def __init__(self, segmentor_name = "watershed") -> None:
         self.segmentor_name = segmentor_name
         self.model = None
+        self.objects_num = {"Objects":0,
+                            "Bacillus":0,
+                            "Coccus":0,
+                            "Groups":0,
+                            "Misc":0}
+        self.has_segmented = False
 
-        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self.device = 'cuda' if cuda.is_available() else 'cpu'
         # device = 'cpu'
         self.classifier_model = MobileNetV2().to(self.device)
         
-        self.classifier_model.load_state_dict(torch.load('Bacteria_finder_core/trained_model_masks_MobileNetV2_2M_v3.pt',
-                                                          map_location=torch.device(self.device)))
+        self.classifier_model.load_state_dict(load('Bacteria_finder_core/trained_model_masks_MobileNetV2_2M_v3.pt',
+                                                          map_location=device(self.device)))
         self.classifier_model.eval()
 
     def Grayscaling(self, image):
@@ -36,10 +43,10 @@ class Bacteria_segmentor():
     
     def Filtering(self, image):
         #cv2.GaussianBlur(one_channel_bacteria, (5,5), 0)
-        return cv2.bilateralFilter(image, d=5, sigmaColor=40, sigmaSpace=40)
+        return bilateralFilter(image, d=5, sigmaColor=40, sigmaSpace=40)
     
     def Thresholding(self, image):
-        return cv2.threshold(image,0,255,cv2.THRESH_TRUNC+cv2.THRESH_TRIANGLE)[1]
+        return threshold(image,0,255,THRESH_TRUNC+THRESH_TRIANGLE)[1]
     
     def Segmentation(self, image):
         if self.segmentor_name == "watershed":
@@ -63,14 +70,14 @@ class Bacteria_segmentor():
             cluster=True
             return self.model.eval(normalize99(image),channels=chans,rescale=rescale,mask_threshold=mask_threshold,
                                     transparency=transparency,flow_threshold=flow_threshold,omni=omni,
-                                    cluster=cluster, resample=resample,verbose=verbose)[0]
+                                    cluster=cluster, resample=resample,verbose=verbose)
         
     def get_bboxs(self, mask_img, mask_list):
         # function to return the list of coordinates of boxes
         result = []
         for mask_num in mask_list:
-            coords = np.where(mask_img == mask_num)
-            bbox = [np.min(coords[0]), np.max(coords[0]), np.min(coords[1]), np.max(coords[1])]
+            coords = where(mask_img == mask_num)
+            bbox = [min(coords[0]), max(coords[0]), min(coords[1]), max(coords[1])]
             result.append(bbox)
         return result
     
@@ -79,8 +86,8 @@ class Bacteria_segmentor():
             ROI_img = self.bacteria[bbox[0]:bbox[1] + 1, bbox[2]:bbox[3] + 1]
             ROI_img_classify = ROI_img
             ROI_mask = self.one_channel_bacteria_filtered_thresholded_labels[bbox[0]:bbox[1] + 1, bbox[2]:bbox[3] + 1]
-            ROI_mask = np.where(ROI_mask == i + 1, ROI_mask, 0).copy()
-            ROI_mask = np.where(ROI_mask == 0, ROI_mask, 1).copy()
+            ROI_mask = where(ROI_mask == i + 1, ROI_mask, 0).copy()
+            ROI_mask = where(ROI_mask == 0, ROI_mask, 1).copy()
 
             if ROI_img.shape[0] > 172 or ROI_img.shape[1] > 172:
                 self.one_channel_bacteria_misc_labels[bbox[0]:bbox[1] + 1, bbox[2]:bbox[3] + 1] = ROI_mask*(i+1)
@@ -88,20 +95,24 @@ class Bacteria_segmentor():
 
             label = self.classify_bboxs(ROI_img_classify, ROI_mask)
             if label[0] == 0:
+                self.objects_num["Bacillus"] += 1
                 self.one_channel_bacteria_bacili_labels[bbox[0]:bbox[1] + 1, bbox[2]:bbox[3] + 1] = ROI_mask*(i+1)
             elif label[0] == 1:
+                self.objects_num["Coccus"] += 1
                 self.one_channel_bacteria_cocci_labels[bbox[0]:bbox[1] + 1, bbox[2]:bbox[3] + 1] = ROI_mask*(i+1)
             elif label[0] == 2:
+                self.objects_num["Groups"] += 1
                 self.one_channel_bacteria_grouped_labels[bbox[0]:bbox[1] + 1, bbox[2]:bbox[3] + 1] = ROI_mask*(i+1)
             elif label[0] == 3:
+                self.objects_num["Misc"] += 1
                 self.one_channel_bacteria_misc_labels[bbox[0]:bbox[1] + 1, bbox[2]:bbox[3] + 1] = ROI_mask*(i+1)
 
     def classify_bboxs(self, img, mask):
-        padded_image = cv2.cvtColor(self.image_padder(img), cv2.COLOR_BGR2RGB)
-        padded_image = np.transpose(padded_image, axes=[2, 0, 1])
+        padded_image = cvtColor(self.image_padder(img), COLOR_BGR2RGB)
+        padded_image = transpose(padded_image, axes=[2, 0, 1])
         padded_mask = self.mask_padder(mask)
         padded_mask = padded_mask.reshape(1, padded_mask.shape[0], padded_mask.shape[1])
-        input_tensor = torch.tensor(np.append(padded_image.astype(np.float32)/255, padded_mask, axis = 0)).to(self.device)
+        input_tensor = tensor(append(padded_image.astype(float32)/255, padded_mask, axis = 0)).to(self.device)
         label = self.classifier_model(input_tensor.reshape(1, input_tensor.shape[0], input_tensor.shape[1], input_tensor.shape[2])).argmax(1).detach().cpu().numpy()
         return label
     
@@ -121,7 +132,7 @@ class Bacteria_segmentor():
             axis_1_pad_0 = int((pad_size - current_image.shape[1])/2)
         axis_1_pad_1 = int((pad_size - current_image.shape[1])/2)
 
-        current_image = np.pad(current_image, ((axis_0_pad_0, axis_0_pad_1),
+        current_image = pad(current_image, ((axis_0_pad_0, axis_0_pad_1),
                                         (axis_1_pad_0, axis_1_pad_1),(0, 0)),
                                         mode='constant', constant_values=0)
         
@@ -143,38 +154,46 @@ class Bacteria_segmentor():
             axis_1_pad_0 = int((pad_size - current_mask.shape[1])/2)
         axis_1_pad_1 = int((pad_size - current_mask.shape[1])/2)
 
-        current_mask = np.pad(current_mask, ((axis_0_pad_0, axis_0_pad_1), (axis_1_pad_0, axis_1_pad_1)),mode='constant', constant_values=0)
+        current_mask = pad(current_mask, ((axis_0_pad_0, axis_0_pad_1), (axis_1_pad_0, axis_1_pad_1)),mode='constant', constant_values=0)
 
         return current_mask
 
 
-    def pipeline(self, in_image, mode = "all"):
+    def pipeline(self, in_image, mode = "segment"):
 
-        self.bacteria = in_image
-        self.one_channel_bacteria = self.Grayscaling(self.bacteria)
-        self.one_channel_bacteria_filtered = self.Filtering(self.one_channel_bacteria)
-        self.one_channel_bacteria_filtered_thresholded = self.Thresholding(self.one_channel_bacteria_filtered)
-        self.one_channel_bacteria_filtered_thresholded_labels = self.Segmentation(self.one_channel_bacteria_filtered_thresholded)
-
-        if mode != "all":
-            self.image_out = np.uint8(mark_boundaries(cv2.cvtColor(self.bacteria, cv2.COLOR_BGR2RGB), 
+        if mode == "segment" or (mode == "classify" and not self.has_segmented):
+            self.bacteria = in_image
+            self.one_channel_bacteria = self.Grayscaling(self.bacteria)
+            self.one_channel_bacteria_filtered = self.Filtering(self.one_channel_bacteria)
+            self.one_channel_bacteria_filtered_thresholded = self.Thresholding(self.one_channel_bacteria_filtered)
+            self.segmantation_results = self.Segmentation(self.one_channel_bacteria_filtered_thresholded)
+            self.objects_num["Objects"] = max(self.segmantation_results[0])
+            self.one_channel_bacteria_filtered_thresholded_labels = self.segmantation_results[0]
+            self.has_segmented = True
+            self.image_out = uint8(mark_boundaries(cvtColor(self.bacteria, COLOR_BGR2RGB), 
                                         self.one_channel_bacteria_filtered_thresholded_labels, 
                                         color=(28/255, 37/255, 22/255))*255)[:,:,::-1]
-            return self.image_out
-        else:
-            self.one_channel_bacteria_bacili_labels = np.zeros_like(self.one_channel_bacteria_filtered_thresholded_labels)
-            self.one_channel_bacteria_cocci_labels = np.zeros_like(self.one_channel_bacteria_filtered_thresholded_labels)
-            self.one_channel_bacteria_grouped_labels = np.zeros_like(self.one_channel_bacteria_filtered_thresholded_labels)
-            self.one_channel_bacteria_misc_labels = np.zeros_like(self.one_channel_bacteria_filtered_thresholded_labels)
+            if mode != "classify":
+                return self.image_out
+
+        if mode == "classify" and self.has_segmented:
+            self.one_channel_bacteria_bacili_labels = zeros_like(self.one_channel_bacteria_filtered_thresholded_labels)
+            self.one_channel_bacteria_cocci_labels = zeros_like(self.one_channel_bacteria_filtered_thresholded_labels)
+            self.one_channel_bacteria_grouped_labels = zeros_like(self.one_channel_bacteria_filtered_thresholded_labels)
+            self.one_channel_bacteria_misc_labels = zeros_like(self.one_channel_bacteria_filtered_thresholded_labels)
             # obtaining bounding boxes and classifying them
-            self.bboxes = self.get_bboxs(self.one_channel_bacteria_filtered_thresholded_labels, np.unique(self.one_channel_bacteria_filtered_thresholded_labels)[1:])
-            self.image_out = cv2.cvtColor(self.bacteria, cv2.COLOR_BGR2RGB)
+            self.bboxes = self.get_bboxs(self.one_channel_bacteria_filtered_thresholded_labels, unique(self.one_channel_bacteria_filtered_thresholded_labels)[1:])
+            self.image_out = cvtColor(self.bacteria, COLOR_BGR2RGB)
             self.Classify(self.bboxes)
-            self.image_out = mark_boundaries(self.image_out, self.one_channel_bacteria_bacili_labels, color=(0, 128/255, 0)) 
-            self.image_out = mark_boundaries(self.image_out, self.one_channel_bacteria_cocci_labels, color=(66/255, 170/255, 255/255))
-            self.image_out = mark_boundaries(self.image_out, self.one_channel_bacteria_grouped_labels, color=(139/255, 0, 1))
-            self.image_out = mark_boundaries(self.image_out, self.one_channel_bacteria_misc_labels, color=(0, 0, 0))
-            return np.uint8(self.image_out*255)[:,:,::-1]
+            self.image_out_bacili = uint8(mark_boundaries(self.image_out, self.one_channel_bacteria_bacili_labels, color=(0, 128/255, 0))*255)[:,:,::-1]
+            self.image_out_cocci = uint8(mark_boundaries(self.image_out, self.one_channel_bacteria_cocci_labels, color=(66/255, 170/255, 255/255))*255)[:,:,::-1]
+            self.image_out_grouped = uint8(mark_boundaries(self.image_out, self.one_channel_bacteria_grouped_labels, color=(139/255, 0, 1))*255)[:,:,::-1]
+            self.image_out_misc = uint8(mark_boundaries(self.image_out, self.one_channel_bacteria_misc_labels, color=(0, 0, 0))*255)[:,:,::-1]
+            self.image_out_result = mark_boundaries(self.image_out, self.one_channel_bacteria_bacili_labels, color=(0, 128/255, 0)) 
+            self.image_out_result = mark_boundaries(self.image_out_result, self.one_channel_bacteria_cocci_labels, color=(66/255, 170/255, 255/255))
+            self.image_out_result = mark_boundaries(self.image_out_result, self.one_channel_bacteria_grouped_labels, color=(139/255, 0, 1))
+            self.image_out_result = mark_boundaries(self.image_out_result, self.one_channel_bacteria_misc_labels, color=(0, 0, 0))
+            return uint8(self.image_out_result*255)[:,:,::-1]
 
 
 

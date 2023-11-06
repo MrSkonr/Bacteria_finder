@@ -3,12 +3,12 @@ sys.path.append('../Bacteria_finder')
 sys.path.append('../Bacteria_finder/GUI application')
 sys.path.append('../Bacteria_finder/Bacteria_finder_core')
 
-import cv2
-import numpy as np
-from Bacteria_finder_core.segmentor import Bacteria_segmentor
-
+from cv2 import IMREAD_UNCHANGED, imdecode, imencode
+from numpy import fromfile, uint8
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QPixmap, QImage
+from PyQt5.QtGui import QImage, QPixmap
+
+from Bacteria_finder_core.segmentor import Bacteria_segmentor
 
 
 class Ui_MainWindow(object):
@@ -100,6 +100,52 @@ class Ui_MainWindow(object):
         self.ButtonsLayout.addWidget(self.SaveImageButton)
         spacerItem5 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.ButtonsLayout.addItem(spacerItem5)
+        self.CountertextBrowser = QtWidgets.QTextBrowser(self.centralwidget)
+        self.CountertextBrowser.setEnabled(False)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.CountertextBrowser.sizePolicy().hasHeightForWidth())
+        self.CountertextBrowser.setSizePolicy(sizePolicy)
+        self.CountertextBrowser.setMinimumSize(QtCore.QSize(0, 30))
+        self.CountertextBrowser.setMaximumSize(QtCore.QSize(16777215, 110))
+        self.CountertextBrowser.setObjectName("CountertextBrowser")
+        self.ButtonsLayout.addWidget(self.CountertextBrowser)
+        spacerItem6 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.ButtonsLayout.addItem(spacerItem6)
+        self.ShowObjectsgroupBox = QtWidgets.QGroupBox(self.centralwidget)
+        self.ShowObjectsgroupBox.setEnabled(False)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.ShowObjectsgroupBox.sizePolicy().hasHeightForWidth())
+        self.ShowObjectsgroupBox.setSizePolicy(sizePolicy)
+        self.ShowObjectsgroupBox.setMinimumSize(QtCore.QSize(0, 170))
+        self.ShowObjectsgroupBox.setObjectName("ShowObjectsgroupBox")
+        self.verticalLayoutWidget = QtWidgets.QWidget(self.ShowObjectsgroupBox)
+        self.verticalLayoutWidget.setGeometry(QtCore.QRect(10, 20, 160, 126))
+        self.verticalLayoutWidget.setObjectName("verticalLayoutWidget")
+        self.ShowObjectsverticalLayout = QtWidgets.QVBoxLayout(self.verticalLayoutWidget)
+        self.ShowObjectsverticalLayout.setContentsMargins(0, 0, 0, 0)
+        self.ShowObjectsverticalLayout.setObjectName("ShowObjectsverticalLayout")
+        self.AllradioButton = QtWidgets.QRadioButton(self.verticalLayoutWidget)
+        self.AllradioButton.setObjectName("AllradioButton")
+        self.ShowObjectsverticalLayout.addWidget(self.AllradioButton)
+        self.BacillusradioButton = QtWidgets.QRadioButton(self.verticalLayoutWidget)
+        self.BacillusradioButton.setObjectName("BacillusradioButton")
+        self.ShowObjectsverticalLayout.addWidget(self.BacillusradioButton)
+        self.CoccusradioButton = QtWidgets.QRadioButton(self.verticalLayoutWidget)
+        self.CoccusradioButton.setObjectName("CoccusradioButton")
+        self.ShowObjectsverticalLayout.addWidget(self.CoccusradioButton)
+        self.GroupsradioButton = QtWidgets.QRadioButton(self.verticalLayoutWidget)
+        self.GroupsradioButton.setObjectName("GroupsradioButton")
+        self.ShowObjectsverticalLayout.addWidget(self.GroupsradioButton)
+        self.MiscradioButton = QtWidgets.QRadioButton(self.verticalLayoutWidget)
+        self.MiscradioButton.setObjectName("MiscradioButton")
+        self.ShowObjectsverticalLayout.addWidget(self.MiscradioButton)
+        self.ButtonsLayout.addWidget(self.ShowObjectsgroupBox)
+        spacerItem7 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.ButtonsLayout.addItem(spacerItem7)
         self.horizontalLayout_2.addLayout(self.ButtonsLayout)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
@@ -124,6 +170,13 @@ class Ui_MainWindow(object):
         # Classify image
         self.ClassifyImageButton.clicked.connect(self.ClassifyImageButtonPushed)
 
+        # Change displayed objects by radiobuttons
+        self.AllradioButton.toggled.connect(self.RadioButtonToggled)
+        self.BacillusradioButton.toggled.connect(self.RadioButtonToggled)
+        self.CoccusradioButton.toggled.connect(self.RadioButtonToggled)
+        self.GroupsradioButton.toggled.connect(self.RadioButtonToggled)
+        self.MiscradioButton.toggled.connect(self.RadioButtonToggled)
+
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Bacteria finder"))
@@ -132,14 +185,64 @@ class Ui_MainWindow(object):
         self.SegmentImageButton.setText(_translate("MainWindow", "Segment"))
         self.ClassifyImageButton.setText(_translate("MainWindow", "Classify"))
         self.SaveImageButton.setText(_translate("MainWindow", "Save image"))
+        self.CountertextBrowser.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'MS Sans Serif\'; font-size:9.75pt; font-weight:400; font-style:normal;\">\n"
+"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Counter:</p>\n"
+"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Objects = 0</p>\n"
+"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Bacillus = 0</p>\n"
+"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Coccus = 0</p>\n"
+"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Groups = 0</p>\n"
+"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Misc = 0</p></body></html>"))
+        self.ShowObjectsgroupBox.setTitle(_translate("MainWindow", "Show objects"))
+        self.AllradioButton.setText(_translate("MainWindow", "All"))
+        self.BacillusradioButton.setText(_translate("MainWindow", "Bacillus"))
+        self.CoccusradioButton.setText(_translate("MainWindow", "Coccus"))
+        self.GroupsradioButton.setText(_translate("MainWindow", "Groups"))
+        self.MiscradioButton.setText(_translate("MainWindow", "Misc"))
 
+    def RadioButtonToggled(self):
+        '''
+        Updates shown image by which radio button is pressed
+        '''
+        if self.AllradioButton.isChecked():
+            self.shown_bacteria_image = self.classified_bacteria_image.copy()
+        elif self.BacillusradioButton.isChecked():
+            self.shown_bacteria_image = self.segmentor.image_out_bacili.copy()
+        elif self.CoccusradioButton.isChecked():
+            self.shown_bacteria_image = self.segmentor.image_out_cocci.copy()
+        elif self.GroupsradioButton.isChecked():
+            self.shown_bacteria_image = self.segmentor.image_out_grouped.copy()
+        elif self.MiscradioButton.isChecked():
+            self.shown_bacteria_image = self.segmentor.image_out_misc.copy()
+        self.UpdateImage()
+    
+    def UpdateCounter(self):
+        '''
+        Updates on screen counter
+        '''
+        self.CountertextBrowser.setHtml("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+                                            "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+                                            "p, li { white-space: pre-wrap; }\n"
+                                            "</style></head><body style=\" font-family:\'MS Sans Serif\'; font-size:9.75pt; font-weight:400; font-style:normal;\">\n"
+                                            "<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Counter:</p>\n"
+                                            f"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Objects = {self.segmentor.objects_num['Objects']}</p>\n"
+                                            f"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Bacillus = {self.segmentor.objects_num['Bacillus']}</p>\n"
+                                            f"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Coccus = {self.segmentor.objects_num['Coccus']}</p>\n"
+                                            f"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Groups = {self.segmentor.objects_num['Groups']}</p>\n"
+                                            f"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Misc = {self.segmentor.objects_num['Misc']}</p></body></html>")
+    
     def ClassifyImageButtonPushed(self):
         '''
         Function that classifies the image and displays the result
         '''
 
         if self.classified_bacteria_image is None:
-            self.classified_bacteria_image = self.segmentor.pipeline(self.original_bacteria_image, "all")
+            self.classified_bacteria_image = self.segmentor.pipeline(self.original_bacteria_image, "classify")
+            self.ShowObjectsgroupBox.setEnabled(True)
+        self.AllradioButton.setChecked(True)
+        self.UpdateCounter()
         self.shown_bacteria_image = self.classified_bacteria_image.copy()
         self.UpdateImage()
     
@@ -150,6 +253,11 @@ class Ui_MainWindow(object):
 
         if self.segmented_bacteria_image is None:
             self.segmented_bacteria_image = self.segmentor.pipeline(self.original_bacteria_image, "segment")
+            self.CountertextBrowser.setEnabled(True)
+            self.ClassifyImageButton.setEnabled(True)
+        if self.ShowObjectsgroupBox.isEnabled():
+            self.AllradioButton.setChecked(True)
+        self.UpdateCounter()
         self.shown_bacteria_image = self.segmented_bacteria_image.copy()
         self.UpdateImage()
     
@@ -166,7 +274,7 @@ class Ui_MainWindow(object):
             return
 
         # Saving in choisen path
-        _, buffed_image = cv2.imencode("." + self.File_save_path.split('/')[-1].split('.')[-1], self.shown_bacteria_image.copy())
+        _, buffed_image = imencode("." + self.File_save_path.split('/')[-1].split('.')[-1], self.shown_bacteria_image.copy())
         buffed_image.tofile(self.File_save_path)
 
     def LoadImageButtonPushed(self):
@@ -190,20 +298,24 @@ class Ui_MainWindow(object):
         from previously chosen folder
         '''
         # Deleting previous results
+        self.segmentor = Bacteria_segmentor("omnipose")
+        self.UpdateCounter()
         self.original_bacteria_image = None
         self.shown_bacteria_image = None
         self.segmented_bacteria_image = None
         self.classified_bacteria_image = None
 
         # Saving the image for future use in cv2
-        self.shown_bacteria_image = cv2.imdecode(np.fromfile(self.File_load_path, dtype=np.uint8), cv2.IMREAD_UNCHANGED)
+        self.shown_bacteria_image = imdecode(fromfile(self.File_load_path, dtype=uint8), IMREAD_UNCHANGED)
         self.original_bacteria_image = self.shown_bacteria_image.copy()
 
         # Enabling and disabling widgets
         self.SegmentImageButton.setEnabled(True)
-        self.ClassifyImageButton.setEnabled(True)
+        self.ClassifyImageButton.setEnabled(False)
         self.SaveImageButton.setEnabled(True)
         self.LoadImageButton.setEnabled(True)
+        self.ShowObjectsgroupBox.setEnabled(False)
+        self.CountertextBrowser.setEnabled(False)
 
         # Displaying the image
         pixmap = QPixmap(self.File_load_path)

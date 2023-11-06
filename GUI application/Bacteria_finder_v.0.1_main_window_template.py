@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'Bacteria_finder_v.0.1_main_window_template.ui'
+# Form implementation generated from reading ui file '.\bacteria_finder_v.0.1_main_window_template.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.7
 #
@@ -42,7 +42,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.setObjectName("verticalLayout")
         self.ImageLabel = QtWidgets.QLabel(self.ImageGroupBox)
         self.ImageLabel.setText("")
-        self.ImageLabel.setPixmap(QtGui.QPixmap("blank.png"))
+        self.ImageLabel.setPixmap(QtGui.QPixmap(".\\blank.png"))
         self.ImageLabel.setScaledContents(True)
         self.ImageLabel.setObjectName("ImageLabel")
         self.verticalLayout.addWidget(self.ImageLabel)
@@ -93,6 +93,52 @@ class Ui_MainWindow(object):
         self.ButtonsLayout.addWidget(self.SaveImageButton)
         spacerItem5 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.ButtonsLayout.addItem(spacerItem5)
+        self.CountertextBrowser = QtWidgets.QTextBrowser(self.centralwidget)
+        self.CountertextBrowser.setEnabled(False)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.CountertextBrowser.sizePolicy().hasHeightForWidth())
+        self.CountertextBrowser.setSizePolicy(sizePolicy)
+        self.CountertextBrowser.setMinimumSize(QtCore.QSize(0, 30))
+        self.CountertextBrowser.setMaximumSize(QtCore.QSize(16777215, 110))
+        self.CountertextBrowser.setObjectName("CountertextBrowser")
+        self.ButtonsLayout.addWidget(self.CountertextBrowser)
+        spacerItem6 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.ButtonsLayout.addItem(spacerItem6)
+        self.ShowObjectsgroupBox = QtWidgets.QGroupBox(self.centralwidget)
+        self.ShowObjectsgroupBox.setEnabled(False)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.ShowObjectsgroupBox.sizePolicy().hasHeightForWidth())
+        self.ShowObjectsgroupBox.setSizePolicy(sizePolicy)
+        self.ShowObjectsgroupBox.setMinimumSize(QtCore.QSize(0, 170))
+        self.ShowObjectsgroupBox.setObjectName("ShowObjectsgroupBox")
+        self.verticalLayoutWidget = QtWidgets.QWidget(self.ShowObjectsgroupBox)
+        self.verticalLayoutWidget.setGeometry(QtCore.QRect(10, 20, 160, 126))
+        self.verticalLayoutWidget.setObjectName("verticalLayoutWidget")
+        self.ShowObjectsverticalLayout = QtWidgets.QVBoxLayout(self.verticalLayoutWidget)
+        self.ShowObjectsverticalLayout.setContentsMargins(0, 0, 0, 0)
+        self.ShowObjectsverticalLayout.setObjectName("ShowObjectsverticalLayout")
+        self.AllradioButton = QtWidgets.QRadioButton(self.verticalLayoutWidget)
+        self.AllradioButton.setObjectName("AllradioButton")
+        self.ShowObjectsverticalLayout.addWidget(self.AllradioButton)
+        self.BacillusradioButton = QtWidgets.QRadioButton(self.verticalLayoutWidget)
+        self.BacillusradioButton.setObjectName("BacillusradioButton")
+        self.ShowObjectsverticalLayout.addWidget(self.BacillusradioButton)
+        self.CoccusradioButton = QtWidgets.QRadioButton(self.verticalLayoutWidget)
+        self.CoccusradioButton.setObjectName("CoccusradioButton")
+        self.ShowObjectsverticalLayout.addWidget(self.CoccusradioButton)
+        self.GroupsradioButton = QtWidgets.QRadioButton(self.verticalLayoutWidget)
+        self.GroupsradioButton.setObjectName("GroupsradioButton")
+        self.ShowObjectsverticalLayout.addWidget(self.GroupsradioButton)
+        self.MsicradioButton = QtWidgets.QRadioButton(self.verticalLayoutWidget)
+        self.MsicradioButton.setObjectName("MsicradioButton")
+        self.ShowObjectsverticalLayout.addWidget(self.MsicradioButton)
+        self.ButtonsLayout.addWidget(self.ShowObjectsgroupBox)
+        spacerItem7 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.ButtonsLayout.addItem(spacerItem7)
         self.horizontalLayout_2.addLayout(self.ButtonsLayout)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
@@ -114,3 +160,29 @@ class Ui_MainWindow(object):
         self.SegmentImageButton.setText(_translate("MainWindow", "Segment"))
         self.ClassifyImageButton.setText(_translate("MainWindow", "Classify"))
         self.SaveImageButton.setText(_translate("MainWindow", "Save image"))
+        self.CountertextBrowser.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'MS Sans Serif\'; font-size:9.75pt; font-weight:400; font-style:normal;\">\n"
+"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Counter:</p>\n"
+"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Objects = 0</p>\n"
+"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Bacillus = 0</p>\n"
+"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Coccus = 0</p>\n"
+"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Groups = 0</p>\n"
+"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">MIsc = 0</p></body></html>"))
+        self.ShowObjectsgroupBox.setTitle(_translate("MainWindow", "Show objects"))
+        self.AllradioButton.setText(_translate("MainWindow", "All"))
+        self.BacillusradioButton.setText(_translate("MainWindow", "Bacillus"))
+        self.CoccusradioButton.setText(_translate("MainWindow", "Coccus"))
+        self.GroupsradioButton.setText(_translate("MainWindow", "Groups"))
+        self.MsicradioButton.setText(_translate("MainWindow", "Misc"))
+
+
+if __name__ == "__main__":
+    import sys
+    app = QtWidgets.QApplication(sys.argv)
+    MainWindow = QtWidgets.QMainWindow()
+    ui = Ui_MainWindow()
+    ui.setupUi(MainWindow)
+    MainWindow.show()
+    sys.exit(app.exec_())
