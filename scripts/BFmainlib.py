@@ -1,8 +1,8 @@
 import os
 
 from numpy import argmax, histogram, zeros, mean, array, uint8, float16
-from cv2 import drawContours, contourArea, findContours, threshold, cvtColor, imread, resize, \
-                INTER_LANCZOS4, COLOR_RGB2HSV, THRESH_BINARY, THRESH_BINARY_INV, RETR_LIST, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE
+from cv2 import medianBlur, drawContours, contourArea, findContours, threshold, cvtColor, imread, resize, \
+                INTER_CUBIC, INTER_LANCZOS4, COLOR_RGB2HSV, THRESH_BINARY, THRESH_BINARY_INV, THRESH_TOZERO, THRESH_TOZERO_INV, RETR_LIST, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE
 from skimage.measure import block_reduce
 
 def HSV_transform(image : array) -> array:
@@ -18,10 +18,13 @@ def HSV_threshold(image : array, type : str = 'simple') -> array:
     'simple' : threshold value is 60 (green color) and strategy is THRESH_BINARY
 
     'bact' : some area (not one value) in hue space is set to zero (corresponding to background).
-    The 'bact' strategy seraches for maximum value in hisstogram and sets to zero every color +- margin (hardcoded) from argmax
+    The 'bact' strategy seraches for maximum value in histogram and sets to zero every color +- margin (hardcoded) from argmax
+
+    'color': some area (hardcoded) in hue space is set to its original value, the rest is set to zero.
+    This strategy puts to zero every "non-red" and "non-purple" value
     '''
     # TODO: remove hardcode
-    assert type == 'simple' or type == 'bact'
+    assert type == 'simple' or type == 'bact' or type == 'color'
 
     if type == 'simple':
         return threshold(image[:,:,0], 60, 180, THRESH_BINARY)[1]
@@ -31,6 +34,12 @@ def HSV_threshold(image : array, type : str = 'simple') -> array:
         background_max = argmax(image_hue_hist[0])
 
         return threshold(image[:,:,0], background_max + margin, 181, THRESH_BINARY)[1] + threshold(image[:,:,0], background_max - margin, 181, THRESH_BINARY_INV)[1]
+    elif type == 'color':
+        image_hue_hist = histogram(image[:,:,0].flatten(), bins=[el for el in range(181)])
+        margin_min = argmax(image_hue_hist[0])-5
+        margin_max = argmax(image_hue_hist[0])+30
+
+        return threshold(image[:,:,0], margin_min, 181, THRESH_BINARY_INV)[1] + threshold(image[:,:,0], margin_max, 181, THRESH_BINARY)[1]
     
 def HSV_segmenting(image : array) -> list:
     '''
@@ -89,7 +98,9 @@ class BF_image():
         # TODO: add different methods and swithes in the future
         self.bacteria_image_preprocessed = resize(uint8(
             block_reduce(self.bacteria_image_loaded, (2,2,1), mean, func_kwargs={'dtype': float16})),
-            self.bacteria_image_loaded.shape[1::-1], interpolation = INTER_LANCZOS4)
+            self.bacteria_image_loaded.shape[1::-1], interpolation = INTER_CUBIC)
+        
+        self.bacteria_image_preprocessed = medianBlur(self.bacteria_image_preprocessed, 5)
         
         if self.verbose:
             print('Successfully preprocessed an image')
@@ -117,7 +128,7 @@ class BF_image():
 
         return drawContours(self.bacteria_image_preprocessed.copy(),
                             objects_undefined_list,
-                            contourIdx=-1, color=(0, 255, 0), thickness=2)
+                            contourIdx=-1, color=(0, 255, 0), thickness=1)
 
 class BF_object():
     def __init__(self, id : str, type : str, contour_coords : list):
