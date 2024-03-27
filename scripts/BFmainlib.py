@@ -27,7 +27,7 @@ def HSV_threshold(image : array, type : str = 'simple') -> array:
     assert type == 'simple' or type == 'bact' or type == 'color'
 
     if type == 'simple':
-        return threshold(image[:,:,0], 60, 180, THRESH_BINARY)[1]
+        return threshold(image[:,:,0], 80, 180, THRESH_BINARY)[1]
     elif type == 'bact':
         margin = 5
         image_hue_hist = histogram(image[:,:,0].flatten(), bins=[el for el in range(181)])
@@ -47,7 +47,7 @@ def HSV_segmenting(image : array) -> list:
     '''
     # TODO: add different types of HSV segmenting
     image_hsv = HSV_transform(image)
-    image_hsv_mask = HSV_threshold(image_hsv, type = 'bact')
+    image_hsv_mask = HSV_threshold(image_hsv, type = 'simple')
     contours_hsv, hierarchy_hsv = findContours(image_hsv_mask, RETR_LIST, CHAIN_APPROX_SIMPLE)
     contours_hsv_mask = sorted(contours_hsv, key = contourArea, reverse= True)
 
@@ -100,7 +100,6 @@ class BF_image():
             block_reduce(self.bacteria_image_loaded, (2,2,1), mean, func_kwargs={'dtype': float16})),
             self.bacteria_image_loaded.shape[1::-1], interpolation = INTER_CUBIC)
         
-        self.bacteria_image_preprocessed = medianBlur(self.bacteria_image_preprocessed, 5)
         
         if self.verbose:
             print('Successfully preprocessed an image')
@@ -128,6 +127,16 @@ class BF_image():
 
         return drawContours(self.bacteria_image_preprocessed.copy(),
                             objects_undefined_list,
+                            contourIdx=-1, color=(0, 255, 0), thickness=1)
+    
+    def object_draw(self, contour = None) -> array:
+        '''
+        Draw the specified contour on an image
+        '''
+        assert contour is not None
+
+        return drawContours(self.bacteria_image_preprocessed.copy(),
+                            [contour],
                             contourIdx=-1, color=(0, 255, 0), thickness=1)
 
 class BF_object():
